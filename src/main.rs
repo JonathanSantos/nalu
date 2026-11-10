@@ -21,8 +21,10 @@ const HELP: &str = "nalu: one wave, every shell (a compiler from one script to B
 usage:
   nalu run <file.nalu> [-- args…]                 compile for this system and run
   nalu build <file.nalu> [--target a,b] [-o dir]  write x.linux.sh, x.macos.sh, x.windows.ps1 and x.windows.cmd
-  nalu check <file.nalu> [--json] [--explain]     check only: errors and warnings; --explain lists every line
+  nalu check <file.nalu> [--json] [--explain] [--deny-warnings]
+                                                  check only: errors and warnings; --explain lists every line
                                                   that can fail without `catch` and what happens if it does
+                                                  --deny-warnings: a warning fails the check too (for CI)
   nalu check --stdin <name.nalu> [--json] […]     the same, reading the source from standard input (editors)
   nalu emit <file.nalu> [--target T] [--ir]       print the generated script (or the IR)
   nalu test [folder|file] [--target T]            run the `test` blocks of the .nalu files in the folder
@@ -51,7 +53,7 @@ enum Cmd {
     Version,
     Run { file: PathBuf, args: Vec<String> },
     Build { file: PathBuf, targets: Vec<Target>, out: PathBuf },
-    Check { file: PathBuf, json: bool, explain: bool, stdin: bool },
+    Check { file: PathBuf, json: bool, explain: bool, stdin: bool, deny_warnings: bool },
     Emit { file: PathBuf, target: Target, ir: bool },
     Test { path: PathBuf, target: Target },
     Ide { query: IdeQuery, file: PathBuf, stdin: bool, at: (usize, usize) },
@@ -111,7 +113,7 @@ fn parse_args(argv: &[String]) -> Result<Cmd, String> {
     let mut script_args: Vec<String> = Vec::new();
     let mut targets: Option<Vec<Target>> = None;
     let mut out: Option<PathBuf> = None;
-    let (mut json, mut explain, mut ir, mut stdin, mut fmt_check, mut doc_all) = (false, false, false, false, false, false);
+    let (mut json, mut explain, mut ir, mut stdin, mut fmt_check, mut doc_all, mut deny_warnings) = (false, false, false, false, false, false, false);
     let mut at: Option<(usize, usize)> = None;
 
     let mut i = 1;
@@ -171,6 +173,10 @@ fn parse_args(argv: &[String]) -> Result<Cmd, String> {
                 no_value(inline)?;
                 explain = true
             }
+            ("check", "--deny-warnings") => {
+                no_value(inline)?;
+                deny_warnings = true
+            }
             ("check", "--stdin") | ("ide", "--stdin") | ("fmt", "--stdin") => {
                 no_value(inline)?;
                 stdin = true
@@ -222,7 +228,7 @@ fn parse_args(argv: &[String]) -> Result<Cmd, String> {
             targets: targets.unwrap_or_else(|| Target::ALL.to_vec()),
             out: out.unwrap_or_else(|| PathBuf::from("dist")),
         }),
-        "check" => Ok(Cmd::Check { file: one_file(&positional)?, json, explain, stdin }),
+        "check" => Ok(Cmd::Check { file: one_file(&positional)?, json, explain, stdin, deny_warnings }),
         "emit" => Ok(Cmd::Emit { file: one_file(&positional)?, target: single_target(targets)?, ir }),
         "test" => {
             let path = match positional.as_slice() {
@@ -679,7 +685,7 @@ fn cmd_build(file: &Path, targets: &[Target], out: &Path) -> Result<u8, String> 
     Ok(0)
 }
 
-fn cmd_check(file: &Path, json: bool, explain: bool, stdin: bool) -> Result<u8, String> {
+fn cmd_check(file: &Path, json: bool, explain: bool, stdin: bool, deny_warnings: bool) -> Result<u8, String> {
     let src = check_source(file, stdin)?;
     let (mut diags, _) = diags_all_targets(&src);
     // With --stdin (editors), only what belongs to the open file; the rest of the package has its own editor.
@@ -707,6 +713,13 @@ fn cmd_check(file: &Path, json: bool, explain: bool, stdin: bool) -> Result<u8, 
         }
     }
     if has_error {
+        return Ok(1);
+    }
+    // --deny-warnings (for CI): a warning fails the check like an error
+    if deny_warnings && !diags.is_empty() {
+        if !json {
+            eprintln!("error: {} warning(s) and --deny-warnings is set", diags.len());
+        }
         return Ok(1);
     }
     if !json && diags.is_empty() && !explain {
@@ -1133,7 +1146,7 @@ fn main() -> ExitCode {
         }
         Cmd::Run { file, args } => cmd_run(file, args),
         Cmd::Build { file, targets, out } => cmd_build(file, targets, out),
-        Cmd::Check { file, json, explain, stdin } => cmd_check(file, *json, *explain, *stdin),
+        Cmd::Check { file, json, explain, stdin, deny_warnings } => cmd_check(file, *json, *explain, *stdin, *deny_warnings),
         Cmd::Emit { file, target, ir } => cmd_emit(file, *target, *ir),
         Cmd::Test { path, target } => cmd_test(path, *target),
         Cmd::Ide { query, file, stdin, at } => cmd_ide(*query, file, *stdin, *at),
@@ -1236,8 +1249,9 @@ mod tests {
 
     #[test]
     fn check_emit_test() {
-        assert_eq!(parse_args(&args("check --json x.nalu --explain")), Ok(Cmd::Check { file: "x.nalu".into(), json: true, explain: true, stdin: false }));
-        assert_eq!(parse_args(&args("check --stdin a/x.nalu --json")), Ok(Cmd::Check { file: "a/x.nalu".into(), json: true, explain: false, stdin: true }));
+        assert_eq!(parse_args(&args("check --json x.nalu --explain")), Ok(Cmd::Check { file: "x.nalu".into(), json: true, explain: true, stdin: false, deny_warnings: false }));
+        assert_eq!(parse_args(&args("check x.nalu --deny-warnings")), Ok(Cmd::Check { file: "x.nalu".into(), json: false, explain: false, stdin: false, deny_warnings: true }));
+        assert_eq!(parse_args(&args("check --stdin a/x.nalu --json")), Ok(Cmd::Check { file: "a/x.nalu".into(), json: true, explain: false, stdin: true, deny_warnings: false }));
         assert!(parse_args(&args("check x.nalu --json=1")).is_err());
         assert_eq!(parse_args(&args("emit x.nalu --target windows --ir")), Ok(Cmd::Emit { file: "x.nalu".into(), target: Target::Windows, ir: true }));
         assert!(parse_args(&args("emit x.nalu --target linux,macos")).is_err());
