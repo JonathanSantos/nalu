@@ -1,5 +1,6 @@
-# Unit tests for the PowerShell runtime. Runs with PowerShell (5.1 or 7):
+﻿# Unit tests for the PowerShell runtime. Runs with PowerShell (5.1 or 7):
 #   pwsh -NoProfile -File runtime/ps/tests.ps1
+# This file is UTF-8 with a BOM: without it, Windows PowerShell 5.1 reads the literals below as ANSI.
 # `cargo test` runs this file when PowerShell is available (NALU_PWSH, pwsh or powershell).
 Set-StrictMode -Version 2
 $ErrorActionPreference = 'Stop'

@@ -1,4 +1,8 @@
-//! Bash backend tests: hand-built IR → script → `/bin/bash` (3.2 on macOS) → compare the output.
+//! Bash backend tests: hand-built IR → script → `/bin/bash` → compare the output.
+//!
+//! The scripts are generated for the target of the machine running the tests (`macos` with its Bash 3.2 on
+//! macOS, `linux` elsewhere), because each target relies on that system's tools (`stat`, `date`, …).
+//! The module is not compiled on Windows, where the PowerShell backend is the one that runs.
 
 use super::generate;
 use crate::ir::*;
@@ -176,8 +180,16 @@ pub fn run_cmd(c: Command) -> Stmt {
 pub fn lam(params: Vec<(&str, Ty)>, ret_ty: Ty, body: Vec<Stmt>) -> Arg {
     Arg::Lambda(Lambda { params: params.into_iter().map(|(n, t)| FParam { name: n.into(), ty: t }).collect(), ret: ret_ty, body: blk(body) })
 }
+/// The Bash target that can run on this machine.
+pub fn host_target() -> Target {
+    if cfg!(target_os = "macos") {
+        Target::Macos
+    } else {
+        Target::Linux
+    }
+}
 pub fn prog(body: Vec<Stmt>) -> Program {
-    let mut p = Program::empty("t", Target::Macos);
+    let mut p = Program::empty("t", host_target());
     p.body = blk(body);
     p
 }
@@ -748,7 +760,9 @@ fn maps_in_functions() {
     ];
     let o = check(&p, &[], "x=3 y=1 z z=1\n1 3\n", 0);
     // no index variable leaks (macOS): those of the local map are unset at the end of the function
-    assert!(o.script.contains("unset \"${m__n[@]}\""), "{}", o.script);
+    if host_target() == Target::Macos {
+        assert!(o.script.contains("unset \"${m__n[@]}\""), "{}", o.script);
+    }
 }
 
 fn cap(c: Command) -> Rvalue {
@@ -786,11 +800,14 @@ fn commands() {
         print(vec![vs("f")]),
         st(StmtKind::Command { cmd: cmd(vec![word_lit("sh"), word_lit("-c"), word_lit("exit 3")], "sh -c 'exit 3'"), on_fail: OnFail::Block { err: Some("e".into()), body: blk(vec![print(vec![field(v("e", Ty::Error), "code", Ty::Int)])]), value: None } }),
         st(StmtKind::Command { cmd: lit_cmd("nao-existe-xyz"), on_fail: OnFail::Ignore }),
-        run_cmd(lit_cmd("ls /nao/existe/mesmo")),
+        run_cmd(lit_cmd("cat /nao/existe/mesmo")),
         print(vec![s("nunca")]),
     ]);
-    let o = check(&p, &[], "[a  b;$c][1 1][2][k=a  b;$c]\nc\nb b\na\na  b;$c\nmais\n<       3>\ntrue false\npadrão\n3\n", 1);
-    assert!(o.stderr.ends_with("error: command `ls /nao/existe/mesmo` failed with exit code 1\n"), "{}", o.stderr);
+    // BSD `wc` pads the count; GNU and BusyBox don't. `cat` of a missing file exits 1 everywhere.
+    let wc = if cfg!(target_os = "macos") { "       3" } else { "3" };
+    let want = format!("[a  b;$c][1 1][2][k=a  b;$c]\nc\nb b\na\na  b;$c\nmais\n<{}>\ntrue false\npadrão\n3\n", wc);
+    let o = check(&p, &[], &want, 1);
+    assert!(o.stderr.ends_with("error: command `cat /nao/existe/mesmo` failed with exit code 1\n"), "{}", o.stderr);
     let p2 = prog(vec![run_cmd(lit_cmd("nao-existe-xyz --x"))]);
     let o2 = check(&p2, &[], "", 127);
     assert!(o2.stderr.ends_with("error: command `nao-existe-xyz` was not found\n"), "{}", o2.stderr);
@@ -1380,7 +1397,7 @@ fn examples_generate_valid_bash() {
             }
         }
     }
-    let p = compile_example("hello", Target::Macos).unwrap();
+    let p = compile_example("hello", host_target()).unwrap();
     let o = run(&p, &["--name", "Ana", "--times", "2"]);
     assert_eq!(o.code, 0, "{}", o.stderr);
     assert!(o.stdout.ends_with("hello, Ana! (1/2)\nhello, Ana! (2/2)\n"), "{}", o.stdout);
@@ -1389,10 +1406,13 @@ fn examples_generate_valid_bash() {
 #[test]
 fn runtime_unit_tests() {
     let t = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("runtime/bash/tests.sh");
-    let o = Proc::new("/bin/bash").arg(&t).arg("macos").output().unwrap();
+    let o = Proc::new("/bin/bash").arg(&t).arg(host_target().os_name()).output().unwrap();
     let out = String::from_utf8_lossy(&o.stdout);
     assert!(o.status.success(), "{}\n{}", out, String::from_utf8_lossy(&o.stderr));
-    // with a Bash 4+ on PATH (Linux, Homebrew), also run the linux target
+    // on macOS with a Bash 4+ installed (Homebrew), also run the linux target
+    if host_target() == Target::Linux {
+        return;
+    }
     for b in ["/usr/local/bin/bash", "/opt/homebrew/bin/bash", "/usr/bin/bash", "/bin/bash"] {
         let v = Proc::new(b).arg("-c").arg("(( BASH_VERSINFO[0] >= 4 ))").status();
         if matches!(v, Ok(s) if s.success()) {

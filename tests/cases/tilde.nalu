@@ -11,4 +11,4 @@ let e = $(echo ~)
 print(e == "{home}")
 let ps: []path = ["~/l", "m", "~x"]
 let f = $(echo {ps})
-print(f == "{home}/l m ~x")
+print(f == "{home / "l"} m ~x")

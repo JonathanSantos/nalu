@@ -307,7 +307,8 @@ ret __b64_dec 'url-safe' '??>???' __b64_dec 'Pz8-Pz8_'
 no __b64_dec 'not base64' __b64_dec '!!'; eq __b64_dec 'message' "$__err_msg" 'encoding: the text is not Base64'
 no __b64_dec 'length' __b64_dec 'aGkxa'
 no __b64_dec 'NUL byte' __b64_dec 'AAE='; eq __b64_dec 'not text' "$__err_msg" 'encoding: the decoded bytes are not UTF-8 text'
-no __b64_dec 'invalid utf-8' __b64_dec '/w=='
+# UTF-8 is validated with `iconv`; without it (a bare Alpine), only the NUL check applies
+if command -v iconv >/dev/null 2>&1; then no __b64_dec 'invalid utf-8' __b64_dec '/w=='; fi
 mkdir -p "$tmp/arq/p" && printf 'x' > "$tmp/arq/p/a.txt"
 ok __archive_tar_create 'creates' __archive_tar_create "$tmp/arq/p.tgz" "$tmp/arq/p"
 ok __archive_tar_extract 'extracts' __archive_tar_extract "$tmp/arq/p.tgz" "$tmp/arq/x"

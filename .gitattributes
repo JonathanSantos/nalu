@@ -1,0 +1,4 @@
+# LF em todo checkout (inclusive no Windows): os helpers de runtime entram no binário com `include_str!`
+# e os testes comparam arquivos byte a byte.
+* text=auto eol=lf
+*.png binary

@@ -27,7 +27,7 @@ pub mod runtime;
 mod store;
 mod val;
 
-#[cfg(test)]
+#[cfg(all(test, unix))]
 mod tests;
 
 use crate::ir::Program;

@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+### Fixed
+
+- Alpine (musl): `encoding.base64_decode` accepted bytes that aren't UTF-8, because musl's `iconv` drops them and still succeeds. The decoded bytes are now compared after the round trip.
+- The test suite passes on Linux, Alpine and Windows, not only on macOS: the Bash backend tests run the target of the machine they are on, and are skipped on Windows.
+
 ## 1.1.0 — 2026-11-09
 
 Everything that compiled with 1.0 compiles with 1.1 and does the same thing, with one exception listed under *Fixed*: a `match` arm placed after `_` used to run before `_`, and is now an error, because it could never be reached as written.

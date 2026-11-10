@@ -54,10 +54,21 @@ fn bash_target() -> &'static str {
 fn bash() -> PathBuf {
     let p = Path::new("/bin/bash");
     if p.is_file() {
-        p.to_path_buf()
-    } else {
-        PathBuf::from("bash")
+        return p.to_path_buf();
     }
+    // Windows: Git Bash. A bare `bash` there resolves to `System32\bash.exe`, the WSL launcher, which is not a Bash.
+    if cfg!(windows) {
+        for var in ["ProgramFiles", "ProgramFiles(x86)", "LOCALAPPDATA"] {
+            let Ok(base) = std::env::var(var) else { continue };
+            for sub in ["Git", "Programs\\Git"] {
+                let g = Path::new(&base).join(sub).join("bin").join("bash.exe");
+                if g.is_file() {
+                    return g;
+                }
+            }
+        }
+    }
+    PathBuf::from("bash")
 }
 
 /// The PowerShell used by the tests: `NALU_PWSH`, or `pwsh`/`powershell` on the PATH.
@@ -273,6 +284,10 @@ fn build(file: &Path, target: &str, out: &Path) -> Result<(), String> {
 }
 
 fn bash_n(sh: &Path) -> Result<(), String> {
+    // Windows without Git Bash: there is no Bash to check the syntax with
+    if cfg!(windows) && !bash().is_absolute() {
+        return Ok(());
+    }
     let o = run({
         let mut c = Command::new(bash());
         c.arg("-n").arg(sh);

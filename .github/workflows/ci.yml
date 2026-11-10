@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Dependências
-        run: apk add --no-cache cargo bash tar curl coreutils-less || apk add --no-cache cargo bash tar curl
+        run: apk add --no-cache cargo bash tar curl musl-utils
       - name: Testes
         run: cargo test
       - name: Runtime Bash (BusyBox)

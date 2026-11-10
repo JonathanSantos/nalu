@@ -485,9 +485,10 @@ __b64_dec() {
   while (( ${#__h_d} % 4 != 0 )); do __h_d+='='; done
   __h_f=$(mktemp "${TMPDIR:-/tmp}/nalu.XXXXXX" 2>/dev/null) || { __err "encoding: could not create a temporary file"; return; }
   if ! printf '%s' "$__h_d" | __b64_d > "$__h_f" 2>/dev/null; then rm -f "$__h_f"; __err "encoding: the text is not Base64"; return; fi
-  # text only: no NUL byte, valid UTF-8
+  # text only: no NUL byte, valid UTF-8. The round trip is compared because musl's iconv (Alpine)
+  # drops invalid bytes and still exits 0
   if ! LC_ALL=C tr -d '\000' < "$__h_f" | cmp -s - "$__h_f" \
-    || { command -v iconv >/dev/null 2>&1 && ! iconv -f UTF-8 -t UTF-8 < "$__h_f" >/dev/null 2>&1; }; then
+    || { command -v iconv >/dev/null 2>&1 && ! iconv -f UTF-8 -t UTF-8 < "$__h_f" 2>/dev/null | cmp -s - "$__h_f"; }; then
     rm -f "$__h_f"
     __err "encoding: the decoded bytes are not UTF-8 text"
     return
