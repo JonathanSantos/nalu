@@ -95,9 +95,13 @@ __ArchiveZipCreate (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'p')
 __ArchiveZipCreate (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'p')
 __ArchiveZipExtract (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'cz')
 Check 'zip_create round trip' ([IO.File]::ReadAllText((Join-Path $tmpd 'cz/p/a.txt'))) 'x'
+[void][IO.Directory]::CreateDirectory((Join-Path $tmpd 'p/empty/inner'))
+[IO.File]::WriteAllText((Join-Path $tmpd 'p/sub.txt'), 'y')
+__ArchiveZipCreate (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'p')
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $zr = [IO.Compression.ZipFile]::OpenRead((Join-Path $tmpd 'c.zip'))
 Check 'zip_create entry names use /' (@($zr.Entries | Where-Object { $_.FullName -eq 'p/a.txt' }).Count) 1
+Check 'zip_create entries' ((@($zr.Entries | ForEach-Object { $_.FullName }) | Sort-Object) -join '|') 'p/a.txt|p/empty/inner/|p/sub.txt'
 $zr.Dispose()
 Check 'zip_create folder does not exist' (Fails { __ArchiveZipCreate (Join-Path $tmpd 'q.zip') (Join-Path $tmpd 'nao') }) $true
 Check 'zip does not exist' (Fails { __ArchiveZipExtract (Join-Path $tmpd 'nao.zip') (Join-Path $tmpd 'z2') }) $true

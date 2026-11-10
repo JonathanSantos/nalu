@@ -284,17 +284,46 @@ function __ArchiveTarExtract([string]$file, [string]$to) {
 
 # @fn __ArchiveZipCreate
 # @needs __Full __DryW __Throw
-# .NET's ZipFile instead of Compress-Archive, which in 5.1 writes entry names with `\` (broken on Unix).
+# Entry by entry, with `/` in the names: Compress-Archive and ZipFile.CreateFromDirectory write `\` under
+# Windows PowerShell 5.1, and such a file extracts wrongly on Unix.
 function __ArchiveZipCreate([string]$file, [string]$dir) {
     $d = (__Full $dir).TrimEnd([char]'\', [char]'/')
     if (__DryW ('archive.zip_create ' + $file + ' ' + $dir) $file) { return }
     if (-not [IO.Directory]::Exists($d)) { __Throw ("archive.zip_create: folder '" + $dir + "' does not exist") 1 }
     $f = __Full $file
+    $fs = $null; $zip = $null
     try {
-        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
-        if ([IO.File]::Exists($f)) { [IO.File]::Delete($f) }
-        [IO.Compression.ZipFile]::CreateFromDirectory($d, $f, [IO.Compression.CompressionLevel]::Optimal, $true)
-    } catch { __Throw ("archive.zip_create: could not create '" + $file + "'") 1 }
+        Add-Type -AssemblyName System.IO.Compression -ErrorAction Stop
+        $base = [IO.Path]::GetFileName($d)
+        $fs = New-Object IO.FileStream $f, ([IO.FileMode]::Create), ([IO.FileAccess]::Write)
+        $zip = New-Object IO.Compression.ZipArchive $fs, ([IO.Compression.ZipArchiveMode]::Create)
+        $pending = New-Object 'System.Collections.Generic.Stack[string]'
+        $pending.Push($d)
+        while ($pending.Count -gt 0) {
+            $cur = $pending.Pop()
+            $rel = $base + $cur.Substring($d.Length).Replace('\', '/')
+            $n = 0
+            foreach ($x in [IO.Directory]::GetFiles($cur)) {
+                $n++
+                if ([IO.Path]::GetFullPath($x) -eq $f) { continue }
+                $e = $zip.CreateEntry(($rel + '/' + [IO.Path]::GetFileName($x)), [IO.Compression.CompressionLevel]::Optimal)
+                $e.LastWriteTime = [IO.File]::GetLastWriteTime($x)
+                $in = [IO.File]::OpenRead($x)
+                $out = $e.Open()
+                try { $in.CopyTo($out) } finally { $out.Dispose(); $in.Dispose() }
+            }
+            foreach ($x in [IO.Directory]::GetDirectories($cur)) { $n++; $pending.Push($x) }
+            # an empty folder is an entry of its own
+            if ($n -eq 0) { [void]$zip.CreateEntry($rel + '/') }
+        }
+    } catch {
+        if ($null -ne $zip) { try { $zip.Dispose() } catch { }; $zip = $null }
+        if ($null -ne $fs) { try { $fs.Dispose() } catch { }; $fs = $null }
+        __Throw ("archive.zip_create: could not create '" + $file + "'") 1
+    } finally {
+        if ($null -ne $zip) { $zip.Dispose() }
+        if ($null -ne $fs) { $fs.Dispose() }
+    }
 }
 
 # @fn __ArchiveZipExtract
