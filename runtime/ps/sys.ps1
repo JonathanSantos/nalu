@@ -483,3 +483,49 @@ function __ParRun($fns, $items, $max, $names, [bool]$serial) {
     # as in Bash (`__par_collect`): it fails when the joined message is not empty
     return @{ ok = ($msg.Length -eq 0); res = $res; err = (__Map @('message', ('parallel: ' + $msg), 'code', $code)) }
 }
+
+# ---- pkg ----------------------------------------------------------------------------------------
+
+# @fn __PkgManager
+# @needs __Which
+function __PkgManager {
+    foreach ($m in @('winget', 'choco', 'scoop')) { if ($null -ne (__Which $m)) { return $m } }
+    return ''
+}
+
+# @fn __PkgInstall
+# @needs __PkgManager __Which __StartProc __Throw
+# In --dry-run only shows. The manager's output goes to stderr: stdout is the script's.
+function __PkgInstall($names) {
+    if ($null -eq $names -or $names.Count -eq 0) { return }
+    $list = New-Object 'System.Collections.Generic.List[string]'
+    foreach ($n in $names) { $list.Add([string]$n) }
+    $all = [string]::Join(' ', $list)
+    if ($script:__dry) { [Console]::Error.WriteLine('[dry-run] pkg.install ' + $all); return }
+    $m = __PkgManager
+    if ($m -eq '') { __Throw 'pkg.install: no package manager found' 1 }
+    $exe = __Which $m
+    $runs = New-Object 'System.Collections.Generic.List[object]'
+    if ($m -eq 'winget') {
+        # winget takes one package at a time
+        foreach ($n in $list) { $runs.Add(@('winget', 'install', $n, '--silent', '--accept-package-agreements', '--accept-source-agreements')) }
+    } elseif ($m -eq 'choco') {
+        $runs.Add(@('choco', 'install', '-y') + $list.ToArray())
+    } else {
+        $runs.Add(@('scoop', 'install') + $list.ToArray())
+    }
+    foreach ($w in $runs) {
+        [Console]::Out.Flush()
+        $p = __StartProc $exe $w $true $true $false
+        try { $p.StandardInput.Close() } catch { }
+        $err = [Console]::OpenStandardError()
+        try { $p.StandardOutput.BaseStream.CopyTo($err); $err.Flush() } catch { }
+        $p.WaitForExit()
+        $code = $p.ExitCode
+        $p.Dispose()
+        # winget: -1978335189 = already installed and nothing newer; that is what was asked for
+        if ($code -ne 0 -and -not ($m -eq 'winget' -and $code -eq -1978335189)) {
+            __Throw ('pkg.install: ' + $m + ' could not install: ' + $all) 1
+        }
+    }
+}

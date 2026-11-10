@@ -36,9 +36,17 @@ jobs:
         run: cargo build --release
       - name: Testes
         run: cargo test
-      - name: Formatação (exemplos e pacote de teste)
+      - name: Formatação (exemplos, pacote de teste e smoke)
         if: runner.os == 'Linux'
-        run: target/release/nalu fmt --check examples tests/pacote
+        run: target/release/nalu fmt --check examples tests/pacote tests/smoke
+      - name: pkg (instala um pacote de verdade)
+        shell: bash
+        env:
+          HOMEBREW_NO_AUTO_UPDATE: "1"
+        run: target/release/nalu run tests/smoke/pkg.nalu
+      - name: Smoke do Windows (programas que os casos e2e não cobrem lá)
+        if: runner.os == 'Windows'
+        run: target/release/nalu run tests/smoke/windows.nalu
       - name: Runtime Bash (alvo linux em Bash 4+)
         if: runner.os == 'Linux'
         run: bash runtime/bash/tests.sh linux
@@ -63,3 +71,5 @@ jobs:
         run: cargo test
       - name: Runtime Bash (BusyBox)
         run: bash runtime/bash/tests.sh linux
+      - name: pkg (apk, como root)
+        run: cargo run -q -- run tests/smoke/pkg.nalu

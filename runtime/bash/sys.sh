@@ -458,3 +458,56 @@ __par_dir() {
   __h_t=${__h_t%/}
   __ret=$(mktemp -d "$__h_t/nalu-par.XXXXXX" 2>/dev/null) || { __err "parallel: could not create a temporary folder"; return; }
 }
+
+# ---- pkg ----------------------------------------------------------------------------------------
+
+# @fn __pkg_manager
+# @target linux
+__pkg_manager() {
+  local __h_m
+  __ret=''
+  for __h_m in apt-get dnf yum pacman zypper apk; do
+    if type -P "$__h_m" >/dev/null 2>&1; then __ret=$__h_m; return 0; fi
+  done
+  return 0
+}
+
+# @fn __pkg_manager
+# @target macos
+__pkg_manager() {
+  __ret=''
+  if type -P brew >/dev/null 2>&1; then __ret=brew; fi
+  return 0
+}
+
+# @fn __pkg_install
+# @needs __err __pkg_manager
+# @target all
+__pkg_install() {
+  # __pkg_install names…; in --dry-run only shows. The manager's output goes to stderr: stdout is the script's.
+  local __h_m __h_rc=0
+  local -a __h_pre
+  (( $# > 0 )) || return 0
+  if [[ $__dry == true ]]; then printf '[dry-run] pkg.install %s\n' "$*" >&2; return 0; fi
+  __pkg_manager
+  __h_m=$__ret
+  [[ -n $__h_m ]] || { __err "pkg.install: no package manager found"; return; }
+  __h_pre=(env)
+  if [[ $__h_m != brew ]] && (( EUID != 0 )); then
+    type -P sudo >/dev/null 2>&1 || { __err "pkg.install: $__h_m needs root, and there is no sudo"; return; }
+    __h_pre=(sudo env)
+  fi
+  case $__h_m in
+    apt-get)
+      # a machine that never ran `apt-get update` has no package lists: on failure, update and try once more
+      "${__h_pre[@]}" DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" >&2 </dev/null \
+        || { "${__h_pre[@]}" apt-get update >&2 </dev/null && "${__h_pre[@]}" DEBIAN_FRONTEND=noninteractive apt-get install -y "$@" >&2 </dev/null; } \
+        || __h_rc=$? ;;
+    dnf | yum) "${__h_pre[@]}" "$__h_m" install -y "$@" >&2 </dev/null || __h_rc=$? ;;
+    pacman) "${__h_pre[@]}" pacman -S --noconfirm --needed "$@" >&2 </dev/null || __h_rc=$? ;;
+    zypper) "${__h_pre[@]}" zypper --non-interactive install "$@" >&2 </dev/null || __h_rc=$? ;;
+    apk) "${__h_pre[@]}" apk add "$@" >&2 </dev/null || __h_rc=$? ;;
+    brew) brew install "$@" >&2 </dev/null || __h_rc=$? ;;
+  esac
+  (( __h_rc == 0 )) || __err "pkg.install: $__h_m could not install: $*"
+}

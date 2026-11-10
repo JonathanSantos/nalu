@@ -4487,11 +4487,9 @@ mod tests {
 
     #[test]
     fn planned_modules_are_compile_errors() {
-        for src in ["print(pkg.manager())", "pkg.install([\"git\"])"] {
-            has(src, "E090");
-        }
-        // implemented since D24 (hash, json, archive) and D32 (regex, encoding): no longer E090
-        let (_, d) = run("print(hash.sha256(\"a\"), json.quote(\"b\"), regex.test(\"a\", 'a'), encoding.base64_encode(\"a\"))\narchive.tar_extract(\"a.tgz\", \"x\") catch ignore");
+        // nothing is planned today: every module is implemented (hash, json, archive since D24; regex, encoding since D32; pkg since D39)
+        assert!(crate::stdlib::STDLIB.iter().all(|f| f.v1));
+        let (_, d) = run("print(hash.sha256(\"a\"), json.quote(\"b\"), regex.test(\"a\", 'a'), encoding.base64_encode(\"a\"), pkg.manager())\narchive.tar_extract(\"a.tgz\", \"x\") catch ignore\npkg.install([\"git\"]) catch ignore");
         assert!(!d.iter().any(|x| x.code == "E090"), "{:#?}", d);
     }
 

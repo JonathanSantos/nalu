@@ -309,6 +309,11 @@ no __b64_dec 'length' __b64_dec 'aGkxa'
 no __b64_dec 'NUL byte' __b64_dec 'AAE='; eq __b64_dec 'not text' "$__err_msg" 'encoding: the decoded bytes are not UTF-8 text'
 # UTF-8 is validated with `iconv`; without it (a bare Alpine), only the NUL check applies
 if command -v iconv >/dev/null 2>&1; then no __b64_dec 'invalid utf-8' __b64_dec '/w=='; fi
+# pkg
+known_manager() { case $1 in '' | apt-get | dnf | yum | pacman | zypper | apk | brew) return 0 ;; esac; return 1; }
+__pkg_manager; ok __pkg_manager 'a known manager or none' known_manager "$__ret"
+ok __pkg_install 'no names: nothing to do' __pkg_install
+eq __pkg_install 'dry-run only shows' "$(__dry=true; __pkg_install a 'b c' 2>&1; echo "s=$?")" $'[dry-run] pkg.install a b c\ns=0'
 # semver
 ok __semver_split 'numbers and pre-release' __semver_split 'v1.20.3-rc.1+b7'; eq __semver_split 'parts' "${__sv_c[*]}|$__sv_p" '1 20 3|rc.1'
 no __semver_split 'empty part' __semver_split '1..2'

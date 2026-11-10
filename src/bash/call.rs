@@ -630,6 +630,12 @@ impl<'a> Gen<'a> {
             }
             "fs.chmod" => self.helper("__fs_chmod", &a, true, Val::Unit),
             "hash.sha256" => self.helper("__hash_sha256", &a, false, ret_w()),
+            "pkg.manager" => self.helper("__pkg_manager", &a, false, ret_w()),
+            "pkg.install" => {
+                let l = self.arg(c, 0).clone();
+                let arr = self.list_arr(&l);
+                self.helper("__pkg_install", &[format!("\"${{{}[@]}}\"", arr)], true, Val::Unit)
+            }
             "semver.compare" => self.helper("__semver_compare", &a, true, ret_w()),
             "encoding.base64_encode" => self.helper("__b64_enc", &a, false, ret_w()),
             "encoding.base64_decode" => self.helper("__b64_dec", &a, true, ret_w()),

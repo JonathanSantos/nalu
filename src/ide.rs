@@ -1665,7 +1665,7 @@ mod tests {
         assert!(doc("err.code").unwrap().contains("err.code: int"));
         assert!(doc("catch").unwrap().contains("Handles a failure"));
         assert!(doc("print").unwrap().contains("print(items: any...)"));
-        assert!(doc("pkg.install").unwrap().contains("Planned"));
+        assert!(doc("pkg.install").unwrap().contains("system's manager"));
         assert!(doc("regex.find").unwrap().contains("single way to match"));
         assert!(doc("").unwrap().contains("## Modules"));
         assert_eq!(doc("fs.reed").unwrap_err(), "nothing named `fs.reed` in Nalu; did you mean `fs.read`?");

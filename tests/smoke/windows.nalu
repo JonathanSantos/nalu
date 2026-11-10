@@ -1,0 +1,35 @@
+// Run by CI on Windows only: what the end-to-end cases can't cover there, because they use Unix programs.
+//   nalu run tests/smoke/windows.nalu
+if os != "windows" {
+    fail "this script is for Windows"
+}
+
+// `NAME=value` before a program reaches that program, and only it
+let who = "ana maria"
+let v = $(NALU_SMOKE=from-env NALU_WHO={who} cmd /c "echo %NALU_SMOKE% %NALU_WHO%")
+if v != "from-env ana maria" {
+    fail "per-command environment: got [{v}]"
+}
+if env.has("NALU_SMOKE") {
+    fail "NALU_SMOKE leaked into the script's environment"
+}
+env.set("NALU_MODE", "outer")
+let inner = $(NALU_MODE=inner cmd /c "echo %NALU_MODE%")
+let outer = $(cmd /c "echo %NALU_MODE%")
+if inner != "inner" || outer != "outer" {
+    fail "override: got [{inner}] [{outer}]"
+}
+env.unset("NALU_MODE")
+if env.has("NALU_MODE") {
+    fail "env.unset did not remove NALU_MODE"
+}
+
+// a failed command names the whole command
+var message = ""
+$ cmd /c "exit 3" catch {
+    message = "{err.code} {err.message}"
+}
+if message != "3 command `cmd /c \"exit 3\"` failed with exit code 3" {
+    fail "failure message: got [{message}]"
+}
+print("ok")

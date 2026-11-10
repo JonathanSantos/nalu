@@ -146,8 +146,8 @@ pub static STDLIB: &[StdFn] = &[
     f("archive", "zip_create", &[p("file", "path"), p("dir", "path")], "unit", true, true, true, "Creates a .zip with the folder as the top entry, replacing the file if it exists. Unix: zip (or BSD tar); Windows: .NET."),
     f("archive", "zip_extract", &[p("file", "path"), p("to", "path")], "unit", true, true, true, "Extracts a .zip into `to`, creating it. Unix: unzip (or BSD tar); Windows: Expand-Archive."),
     // pkg
-    f("pkg", "manager", &[], "str", false, false, false, "The system's package manager: apt-get, dnf, yum, pacman, zypper, apk; brew; winget, choco, scoop; or \"\". Planned; the compiler refuses it for now (E090)."),
-    f("pkg", "install", &[p("names", "[]str")], "unit", true, true, false, "Installs packages with the system's manager, with sudo on Linux when not root. Planned; the compiler refuses it for now (E090)."),
+    f("pkg", "manager", &[], "str", false, false, true, "The system's package manager: `apt-get`, `dnf`, `yum`, `pacman`, `zypper` or `apk` on Linux; `brew` on macOS; `winget`, `choco` or `scoop` on Windows; \"\" if there is none."),
+    f("pkg", "install", &[p("names", "[]str")], "unit", true, true, true, "Installs the packages with the system's manager, answering yes to its questions; on Linux it uses `sudo` when the script is not root. The names are the manager's own (see `pkg.manager`). The manager's output goes to standard error. Fails if there is no manager or it fails. With --dry-run it is only shown."),
 ];
 
 #[derive(Clone, Copy, Debug)]
@@ -290,7 +290,7 @@ pub static MODULES: &[(&str, &str)] = &[
     ("log", "Leveled messages on stderr."),
     ("math", "Integer helpers."),
     ("path", "Path helpers. Properties like `.name` and `.parent` are read from `path` values."),
-    ("pkg", "System package managers. Planned; the compiler refuses it for now (E090)."),
+    ("pkg", "The system's package manager: which one it is, and installing packages with it."),
     ("proc", "Programs on PATH."),
     ("regex", "Regular expressions in one portable syntax, checked by the compiler and identical on every target."),
     ("semver", "Version numbers such as 1.4.0 and v2.0.0-rc.1."),

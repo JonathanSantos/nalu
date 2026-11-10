@@ -1133,9 +1133,10 @@ fn stdlib_coverage() {
 
 #[test]
 fn planned_functions_fail_with_a_message() {
-    let p = prog(vec![let_("t", Ty::Str, rcall(call_std("pkg", "manager", vec![], Ty::Str)))]);
+    // a function the backend does not know (the checker would refuse it with E090)
+    let p = prog(vec![let_("t", Ty::Str, rcall(call_std("pkg", "uninstall_everything", vec![], Ty::Str)))]);
     let o = check(&p, &[], "", 70);
-    assert_eq!(o.stderr, "error: pkg.manager is not implemented yet\n");
+    assert_eq!(o.stderr, "error: pkg.uninstall_everything is not implemented yet\n");
 }
 
 #[test]

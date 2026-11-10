@@ -196,6 +196,9 @@ struct Lowerer<'a> {
     collect_deps: bool,
     /// Programs a surrounding `if proc.exists("x")` already checked: not required up front, no `W010`.
     guarded: Vec<String>,
+    /// Programs the script asks about with `proc.exists("x")`, anywhere: it decides what to do when one is
+    /// missing (install it, skip a step), so they are not required up front.
+    asked: Vec<String>,
     line: u32,
     err_mode: Vec<ErrMode>,
 }
@@ -218,6 +221,7 @@ pub fn lower(tp: &TProgram, source: &str, file: &str, target: Target) -> (Progra
         deps: Vec::new(),
         collect_deps: true,
         guarded: Vec::new(),
+        asked: Vec::new(),
         line: 1,
         err_mode: vec![ErrMode::Current],
     };
@@ -438,7 +442,7 @@ impl<'a> Lowerer<'a> {
         deps_sorted.sort_by_key(|(o, _)| *o);
         let mut deps: Vec<String> = Vec::new();
         for (_, d) in deps_sorted {
-            if !deps.contains(&d) {
+            if !deps.contains(&d) && !self.asked.contains(&d) {
                 deps.push(d);
             }
         }
@@ -1373,6 +1377,9 @@ impl<'a> Lowerer<'a> {
                 TArg::Lambda(l) => args.push(Arg::Lambda(self.lambda(l))),
             }
         }
+        if let (TTarget::Std("proc", "exists"), Some(TArg::Expr(TExpr { kind: TK::Str(s), .. }))) = (&c.target, c.args.first()) {
+            self.asked.push(s.clone());
+        }
         let target = match &c.target {
             TTarget::User(i) => CallTarget::User(self.tp.fns[*i].name.clone()),
             TTarget::Std(m, n) => CallTarget::Std { module: m.to_string(), name: n.to_string() },
@@ -2276,6 +2283,14 @@ mod tests {
     fn deps_in_order_without_builtins() {
         let p = prog("fn f() {\n $ docker ps\n}\n$ git pull\n$ echo oi\n$ cd x\n$ git push\nlet x = $(kubectl get pods | grep api)\nprint(x)\nf()\n");
         assert_eq!(p.deps, vec!["docker", "git", "kubectl", "grep"]);
+    }
+
+    /// A program the script asks about with `proc.exists` is not required up front, wherever it is used:
+    /// the script may be about to install it.
+    #[test]
+    fn deps_skip_programs_the_script_asks_about() {
+        let p = prog("fn f() {\n $ jq --version\n}\nif !proc.exists(\"jq\") {\n pkg.install([\"jq\"])\n}\n$ git pull\n$ jq .\nf()\n");
+        assert_eq!(p.deps, vec!["git"]);
     }
 
     #[test]

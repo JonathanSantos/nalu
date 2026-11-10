@@ -120,10 +120,10 @@ Path helpers. Properties like `.name` and `.parent` are read from `path` values.
 
 ## Module pkg
 
-System package managers. Planned; the compiler refuses it for now (E090).
+The system's package manager: which one it is, and installing packages with it.
 
-- `pkg.manager() -> str` (planned): The system's package manager: apt-get, dnf, yum, pacman, zypper, apk; brew; winget, choco, scoop; or "". Planned; the compiler refuses it for now (E090).
-- `pkg.install(names: []str)` (can fail, writes, planned): Installs packages with the system's manager, with sudo on Linux when not root. Planned; the compiler refuses it for now (E090).
+- `pkg.manager() -> str`: The system's package manager: `apt-get`, `dnf`, `yum`, `pacman`, `zypper` or `apk` on Linux; `brew` on macOS; `winget`, `choco` or `scoop` on Windows; "" if there is none.
+- `pkg.install(names: []str)` (can fail, writes): Installs the packages with the system's manager, answering yes to its questions; on Linux it uses `sudo` when the script is not root. The names are the manager's own (see `pkg.manager`). The manager's output goes to standard error. Fails if there is no manager or it fails. With --dry-run it is only shown.
 
 ## Module proc
 

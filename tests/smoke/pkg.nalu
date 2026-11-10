@@ -1,0 +1,31 @@
+// Run by CI only: it installs a real package with the system's manager.
+//   nalu run tests/smoke/pkg.nalu
+let m = pkg.manager()
+if m == "" {
+    fail "no package manager found on this machine"
+}
+log.info("package manager: {m}")
+
+// `pv` has the same name in apt, apk, dnf, pacman, zypper and brew. On Windows the runners' managers differ
+// too much to pick one package, so only the failure below runs there.
+if os != "windows" {
+    if proc.exists("pv") {
+        log.info("pv is already here")
+    } else {
+        pkg.install(["pv"])
+    }
+    if !proc.exists("pv") {
+        fail "pkg.install succeeded but `pv` is not on the PATH"
+    }
+    // asked about above, so it was not required before the install
+    $ pv --version
+}
+
+var message = ""
+pkg.install(["nalu-no-such-package-xyz"]) catch {
+    message = err.message
+}
+if !message.starts_with("pkg.install: {m} could not install") {
+    fail "a package that does not exist should fail, got: {message}"
+}
+print("ok")
