@@ -50,6 +50,7 @@ pub static STDLIB: &[StdFn] = &[
     f("env", "get", &[p("name", "str")], "str", true, false, true, "The value of the environment variable; fails if it is not set."),
     f("env", "has", &[p("name", "str")], "bool", false, false, true, "Whether the environment variable is set."),
     f("env", "set", &[p("name", "str"), p("value", "str")], "unit", false, false, true, "Sets the variable for this script and for the commands it runs."),
+    f("env", "unset", &[p("name", "str")], "unit", false, false, true, "Removes the variable for this script and for the commands it runs; nothing happens if it is not set."),
     // fs
     f("fs", "exists", &[p("p", "path")], "bool", false, false, true, "Whether the path exists (file or folder)."),
     f("fs", "is_dir", &[p("p", "path")], "bool", false, false, true, "Whether the path is an existing folder."),
@@ -206,6 +207,7 @@ pub static METHODS: &[Method] = &[
     m("list", "reverse", &[], "[]T", false, false, "The items in reverse order."),
     m("list", "slice", &[p("start", "int"), pd("end", "int", SLICE_END)], "[]T", false, false, "The items from `start` up to, not including, `end`. Negative counts from the end; out of range is clamped."),
     m("list", "unique", &[], "[]T", false, false, "Without duplicates, keeping the first occurrence."),
+    m("list", "concat", &[p("other", "[]T")], "[]T", false, false, "A new list with the items of this one followed by the items of `other`."),
     m("list", "first", &[], "T", true, false, "The first item; fails if the list is empty."),
     m("list", "last", &[], "T", true, false, "The last item; fails if the list is empty."),
     // map[K]V

@@ -158,6 +158,9 @@ foreach ($bad in @('+5', '4x', '', '1.5', '9223372036854775808')) {
     Check "to_int refuses '$bad'" $ok $true
 }
 Check 'chars' ((__Cps 'a👍b') -join '|') 'a|👍|b'
+$lc = __ListConcat (L 1 2) (L 3)
+Check 'concat' ($lc -join ',') '1,2,3'
+Check 'concat empty' ((__ListConcat (L) (L)).Count) 0
 
 # lists and maps
 Check 'sort text' ((__ListSort (L 'b' 'B' 'a' '_' 'A') $true) -join ' ') 'A B _ a b'

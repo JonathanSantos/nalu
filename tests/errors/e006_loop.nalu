@@ -1,0 +1,5 @@
+// error: E006
+// There is no `loop`: `while true` with `break`.
+loop {
+    break
+}

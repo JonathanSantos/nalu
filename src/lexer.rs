@@ -1277,10 +1277,43 @@ fn parts_from_chars(src: &str, chars: &[(usize, char)], base: usize, diags: &mut
                         );
                         None
                     }
+                    // `\u{1b}`: a character by its code point, 1 to 6 hex digits
+                    Some('u') => {
+                        let mut j = i + 2;
+                        let mut hex = String::new();
+                        let open = chars.get(j).map(|x| x.1) == Some('{');
+                        if open {
+                            j += 1;
+                            while let Some((_, h)) = chars.get(j) {
+                                if !h.is_ascii_hexdigit() || hex.len() > 6 {
+                                    break;
+                                }
+                                hex.push(*h);
+                                j += 1;
+                            }
+                        }
+                        let closed = open && chars.get(j).map(|x| x.1) == Some('}');
+                        let ch = u32::from_str_radix(&hex, 16).ok().filter(|n| *n != 0).and_then(char::from_u32);
+                        match ch {
+                            Some(ch) if closed && hex.len() <= 6 => {
+                                lit.push(ch);
+                                i = j + 1;
+                            }
+                            _ => {
+                                let end = chars.get(j).map(|x| x.0).unwrap_or(off + 2);
+                                diags.push(
+                                    Diag::error("E005", Span::new(base + off, base + end.max(off + 2)), "`\\u` needs a code point in braces")
+                                        .with_help("write `\\u{1b}` or `\\u{1F44D}`: 1 to 6 hex digits of a valid character (not 0)"),
+                                );
+                                i += 2;
+                            }
+                        }
+                        continue;
+                    }
                     Some(o) => {
                         diags.push(
                             Diag::error("E005", Span::new(base + off, base + off + 1 + o.len_utf8()), format!("unknown escape `\\{}`", o))
-                                .with_help("escapes: `\\n \\t \\r \\\" \\\\ \\{ \\}`; for a literal `\\` use `'raw'`"),
+                                .with_help("escapes: `\\n \\t \\r \\\" \\\\ \\{ \\} \\u{1b}`; for a literal `\\` use `'raw'`"),
                         );
                         None
                     }

@@ -85,6 +85,13 @@ function __ListReverse($l) {
     return ,$r
 }
 
+# @fn __ListConcat
+function __ListConcat($a, $b) {
+    $r = [System.Collections.Generic.List[object]]::new($a)
+    $r.AddRange($b)
+    return ,$r
+}
+
 # @fn __ListSlice
 # @needs __SliceBounds
 function __ListSlice($l, $a, $b) {

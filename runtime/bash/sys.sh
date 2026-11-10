@@ -16,6 +16,10 @@ __env_has() { [[ $1 != *[!A-Za-z0-9_]* && $1 == [A-Za-z_]* && -n ${!1+x} ]]; }
 # @target all
 __env_set() { [[ $1 != *[!A-Za-z0-9_]* && $1 == [A-Za-z_]* ]] && export "$1=$2"; return 0; }
 
+# @fn __env_unset
+# @target all
+__env_unset() { [[ $1 != *[!A-Za-z0-9_]* && $1 == [A-Za-z_]* ]] && unset "$1"; return 0; }
+
 # @fn __sys_arch
 # @target all
 __sys_arch() {

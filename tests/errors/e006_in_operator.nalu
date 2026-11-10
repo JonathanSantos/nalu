@@ -1,0 +1,6 @@
+// error: E006
+// `in` only belongs to `for`; membership is `xs.contains(x)`.
+let xs = [1, 2]
+if 1 in xs {
+    print("yes")
+}

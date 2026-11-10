@@ -29,3 +29,5 @@ print(multi)
 print(fmt("{} está na porta {}", "api", 8080))
 print("porta " + 8080, "x" + true)
 print("{nome.len()} letras, {t.split(",").len()} partes")
+// \u{…}: a character by its code point
+print("caf\u{e9} \u{1F44D} [\u{41}]", "\u{1b}".len(), '\u{41}')

@@ -688,6 +688,7 @@ impl<'a> Parser<'a> {
                 "the standard library is always available (`fs.read`, `log.info`…); remove the line",
             ),
             "elif" | "elsif" if looks_like_use => (format!("`{}` does not exist", w), "use `} else if cond {`"),
+            "loop" if next == Tok::LBrace => ("`loop` does not exist".into(), "use `while true { … }` and leave with `break`"),
             _ => return false,
         };
         self.error6(sp, msg, help);
@@ -823,6 +824,12 @@ impl<'a> Parser<'a> {
         self.enter()?;
         let r = self.or_expr();
         self.leave();
+        // `if x in xs` from Python: `in` only belongs to `for`
+        if r.is_ok() && self.at(&Tok::Kw(Kw::In)) {
+            let sp = self.span();
+            self.error6(sp, "`in` is not an operator", "`in` belongs to `for x in xs`; to test membership use `xs.contains(x)` or `m.has(k)`");
+            return Err(());
+        }
         r
     }
 

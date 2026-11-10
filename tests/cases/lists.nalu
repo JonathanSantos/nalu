@@ -46,3 +46,21 @@ let textos = xs.map(n => "<{n}>")
 print(textos.join(""))
 let nums = [10, 9, 100]
 print(nums.sort().join(","), nums.sort_by(n => -n).join(","))
+// concat: a new list; the originals don't change; structs and lists of lists too
+struct Par {
+    nome: str
+    n: int
+}
+
+let ca = [1, 2]
+let cb = ca.concat([3]).concat([4, 5])
+print(cb.join(","), ca.len(), ca.concat([]).len())
+let pa = [Par { nome: "x", n: 1 }]
+let pb = pa.concat([Par { nome: "y y", n: 2 }, Par { nome: "z", n: 3 }])
+print(pb.len(), pa.len(), pb[1].nome, pb.map(q => q.n).join("+"))
+let ga = [[1, 2], [3]]
+let gb = ga.concat([[4, 5, 6]])
+print(gb.len(), gb[2].len(), gb[0][1])
+for w in ["a b", ""].concat(["c"]) {
+    print("[{w}]")
+}

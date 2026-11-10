@@ -2503,7 +2503,7 @@ impl<'a> Checker<'a> {
                         Self::bad(span)
                     }
                     (A::Add, Ty::List(_), _) | (A::Add, _, Ty::List(_)) => {
-                        self.errh("E010", span, "lists cannot be added with `+`", "to append an item use `xs.push(x)` (on a `var`)");
+                        self.errh("E010", span, "lists cannot be added with `+`", "to join two lists use `xs.concat(ys)`; to append an item use `xs.push(x)` (on a `var`)");
                         Self::bad(span)
                     }
                     _ => {

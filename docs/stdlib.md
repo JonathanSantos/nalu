@@ -41,6 +41,7 @@ Environment variables.
 - `env.get(name: str) -> str` (can fail): The value of the environment variable; fails if it is not set.
 - `env.has(name: str) -> bool`: Whether the environment variable is set.
 - `env.set(name: str, value: str)`: Sets the variable for this script and for the commands it runs.
+- `env.unset(name: str)`: Removes the variable for this script and for the commands it runs; nothing happens if it is not set.
 
 ## Module fs
 
@@ -252,6 +253,7 @@ A list: `[1, 2, 3]`, typed `[]T` (`[]str`, `[]int`, `[][]str`). Indexing `xs[i]`
 - `[]T.reverse() -> []T`: The items in reverse order.
 - `[]T.slice(start: int, end: int = end) -> []T`: The items from `start` up to, not including, `end`. Negative counts from the end; out of range is clamped.
 - `[]T.unique() -> []T`: Without duplicates, keeping the first occurrence.
+- `[]T.concat(other: []T) -> []T`: A new list with the items of this one followed by the items of `other`.
 - `[]T.first() -> T` (can fail): The first item; fails if the list is empty.
 - `[]T.last() -> T` (can fail): The last item; fails if the list is empty.
 

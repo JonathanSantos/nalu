@@ -333,6 +333,8 @@ no __env_get 'does not exist' __env_get NALU_T_NAO
 no __env_get 'invalid name' __env_get 'A-B'
 ok __env_has 'exists' __env_has NALU_T_X
 __env_set NALU_T_Y 'z'; eq __env_set 'exports' "$(sh -c 'printf %s "$NALU_T_Y"')" z
+__env_unset NALU_T_Y; eq __env_unset 'removes' "$(sh -c 'printf %s "${NALU_T_Y-gone}"')" gone
+__env_unset NALU_T_NEVER; __env_unset 'bad name'; no __env_unset 'still unset' __env_has NALU_T_Y
 ok __sys_arch 'non-empty' eval '__sys_arch; [[ -n $__ret ]]'
 ok __sys_hostname 'non-empty' eval '__sys_hostname; [[ -n $__ret ]]'
 ok __sys_user 'non-empty' eval '__sys_user; [[ -n $__ret ]]'

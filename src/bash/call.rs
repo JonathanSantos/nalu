@@ -473,6 +473,7 @@ impl<'a> Gen<'a> {
             "env.get" => self.helper("__env_get", &a, true, ret_w()),
             "env.has" => self.pred("__env_has", &a),
             "env.set" => self.helper("__env_set", &a, false, Val::Unit),
+            "env.unset" => self.helper("__env_unset", &a, false, Val::Unit),
             "fs.exists" => self.pred("__fs_exists", &a),
             "fs.is_dir" => self.pred("__fs_is_dir", &a),
             "fs.is_file" => self.pred("__fs_is_file", &a),
@@ -986,6 +987,23 @@ impl<'a> Gen<'a> {
                     self.pred("__list_has", &[target, items])
                 } else {
                     self.helper("__list_index", &[target, items], false, ret_w())
+                }
+            }
+            "concat" => {
+                let o = self.arg(c, 1).clone();
+                let ob = match self.loc(&o) {
+                    Loc::Base(x) => x,
+                    Loc::Elem { .. } => unreachable!(),
+                };
+                match &sname {
+                    Some(s) => {
+                        let t = self.tmp(&lty);
+                        for f in self.struct_fields(s) {
+                            self.line(format!("{t}__{f}=(\"${{{b}__{f}[@]}}\" \"${{{o}__{f}[@]}}\")", t = t, f = f.name, b = b, o = ob));
+                        }
+                        out(None, Val::SList(t, s.clone()))
+                    }
+                    None => out(None, Val::List(format!("\"${{{}[@]}}\" \"${{{}[@]}}\"", b, ob))),
                 }
             }
             "reverse" => match &sname {
