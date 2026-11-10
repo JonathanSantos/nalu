@@ -2254,7 +2254,7 @@ impl<'a> Checker<'a> {
                 }
                 Some(ErrBind::Current) => mk(TK::CurrentErr, Ty::Error),
                 None => {
-                    self.errh("E046", span, "`err` outside a handler", "`err` exists inside `catch { … }` and in `catch fail \"…{err}\"`");
+                    self.errh("E046", span, "`err` outside a handler", "`err` exists after `catch`: in its value, in `catch { … }` and in `catch fail \"…{err}\"`");
                     Self::bad(span)
                 }
             },
@@ -2984,9 +2984,19 @@ impl<'a> Checker<'a> {
                     self.ex(v, None, true);
                     THandler::Ignore
                 } else {
+                    // `err` is available in the value too (`catch err.message`, `catch "failed: {err}"`):
+                    // when it is used, the value is handled like the one-line block `catch { value }`
+                    let eid = self.new_var("err", Ty::Error, false, VarKind::Err, v.span);
+                    self.vars[eid].vis = (v.span.start, v.span.end);
+                    self.ctx.err_stack.push(Some(ErrBind::Var(eid)));
                     let tv = self.ex(v, Some(&t), true);
+                    self.ctx.err_stack.pop();
                     self.expect_ty(&tv, &t, "the value after `catch`");
-                    THandler::Default(tv)
+                    if self.vars[eid].used {
+                        THandler::Block { err: Some(eid), body: TBlock { stmts: Vec::new(), value: Some(Box::new(tv)) } }
+                    } else {
+                        THandler::Default(tv)
+                    }
                 }
             }
             ast::Handler::Fail { message, code, .. } => {

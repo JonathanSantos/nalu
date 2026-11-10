@@ -1,0 +1,27 @@
+// `err` in the value after `catch`: the same error a `catch { … }` block sees.
+fn boom(n: int) -> int {
+    if n > 1 {
+        fail "too big: {n}", code: 7
+    }
+    return n
+}
+
+fn msg(n: int) -> str {
+    return "{boom(n)}" catch "failed: {err}"
+}
+
+let a = boom(5) catch err.code
+let b = fs.read("/nao/existe") catch err.message
+var c = 0
+c = boom(9) catch err.code + 1
+print(a, c, msg(1), msg(3))
+print(b.ends_with("does not exist"), boom(2) catch err.code * 2)
+let d = "x".to_int() catch boom(4) catch err.code + 100
+print(d)
+let e = boom(3) catch {
+    err.code
+}
+let xs = [1, 5].map(n => boom(n) catch err.code)
+print(e, xs.join(","))
+let f = boom(8) catch -1
+print(f)

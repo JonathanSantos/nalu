@@ -82,6 +82,7 @@ that fails on purpose and an unhandled error; expected output in `tests/pacote/s
 | `match` | duration and bool patterns, inclusive ranges, an arm with a block, an arm with `fail` in a `match` expression |
 | `match_patterns` | `match` with guards (`n if …`), bindings (`n =>`) and struct patterns, tested in order |
 | `error_handling` | `fail` with a code, `catch` in its five forms, `try`/`catch`, propagation through functions, `err.code`, `catch { break }` inside a loop, a top-level `catch fail` → exit code and `error: …` |
+| `catch_err_value` | `err` in the value after `catch` (`catch err.code`, `catch "failed: {err}"`): in `let`, `=`, `return`, arguments, lambdas and chained `catch` |
 | `top_level_failure` | an unhandled failure at the top level: `error: boom` on stderr and the `fail` code |
 | `commands` (unix) | `{x}` as **one** argument (with a space, `;`, `$`, `*`), mixed words, `{list}`, `$( )` without the trailing line breaks, pipes, `value \| $` without an extra `\n`, `if $`, `if !$`, `catch ignore`, `catch { err.code }`, `>`, `>>`, `<`, `2>`, `2>&1`, a missing program (127) through a dynamic name, pipefail, the command's exit code |
 | `command_env` (unix) | `NAME=value` before a program: literal and interpolated values, a secret, each stage of a pipeline, a condition, an empty value, nothing left in the script's environment, overriding `env.set`, failure messages |
