@@ -1,0 +1,11 @@
+// A script split across files (D37): `use` brings in the declarations of other files.
+use "lib/services.nalu"
+use "lib/text.nalu"
+
+/// who to greet
+param name: str = "world"
+
+let svc = Service { name: "api", port: 8080 }
+print(shout(greet(name)))
+print(svc.url(), svc.label())
+print(stage_name(Stage.prod))

@@ -1,0 +1,323 @@
+{
+  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+  "name": "Nalu",
+  "scopeName": "source.nalu",
+  "fileTypes": ["nalu"],
+  "patterns": [
+    { "include": "#comments" },
+    { "include": "#command" },
+    { "include": "#capture" },
+    { "include": "#strings" },
+    { "include": "#declarations" },
+    { "include": "#keywords" },
+    { "include": "#builtins" },
+    { "include": "#types" },
+    { "include": "#numbers" },
+    { "include": "#calls" },
+    { "include": "#operators" }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        { "name": "comment.line.documentation.nalu", "match": "///(?!/).*$" },
+        { "name": "comment.line.double-slash.nalu", "match": "//.*$" },
+        {
+          "name": "comment.block.nalu",
+          "begin": "/\\*",
+          "end": "\\*/",
+          "beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.nalu" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.comment.end.nalu" } }
+        }
+      ]
+    },
+
+    "command": {
+      "comment": "`$ cmd args`: vai até o fim da linha, um `catch` solto (abre o tratador), `//` no começo de uma palavra, uma `{` no fim da linha (abre o bloco de `if $ cmd {`) ou um `)` sem par (`assert_fails($ false)`).",
+      "name": "meta.command.nalu",
+      "begin": "(\\$)[ \\t]+([^\\s|<>{}\"'()]+)?",
+      "beginCaptures": {
+        "1": { "name": "keyword.operator.command.nalu" },
+        "2": { "name": "entity.name.function.command.nalu" }
+      },
+      "end": "(?=(?<=\\s)catch(?:\\s|$)|(?<=\\s)//|\\)|(?<=\\s)\\{\\s*(?://.*)?$|(?<=\\s)\\{[ \\t][^{}]*\\}\\s*(?://.*)?$)|$",
+      "patterns": [{ "include": "#command-words" }]
+    },
+    "capture": {
+      "comment": "`$(cmd args)`: captura a saída; termina no `)` sem par, na mesma linha.",
+      "name": "meta.capture.nalu",
+      "begin": "(\\$\\()[ \\t]*([^\\s|<>{}\"'()]+)?",
+      "beginCaptures": {
+        "1": { "name": "keyword.operator.command.nalu" },
+        "2": { "name": "entity.name.function.command.nalu" }
+      },
+      "end": "\\)|$",
+      "endCaptures": { "0": { "name": "keyword.operator.command.nalu" } },
+      "patterns": [{ "include": "#command-words" }]
+    },
+    "command-words": {
+      "patterns": [
+        { "name": "string.unquoted.argument.placeholder.nalu", "match": "\\{\\s*\\}" },
+        { "include": "#interpolation" },
+        { "include": "#strings" },
+        {
+          "match": "(\\|)[ \\t]*([^\\s|<>{}\"'()]+)?",
+          "captures": {
+            "1": { "name": "keyword.operator.pipe.nalu" },
+            "2": { "name": "entity.name.function.command.nalu" }
+          }
+        },
+        { "name": "keyword.operator.redirect.nalu", "match": "2>&1|2>>|2>|>>|>|<" },
+        { "name": "variable.parameter.option.nalu", "match": "(?<![^\\s])--?[A-Za-z][A-Za-z0-9_-]*" },
+        { "name": "string.unquoted.argument.nalu", "match": "(?:[^\\s|<>{}\"'()]|\\([^\\s()|<>{}\"']*\\))+" }
+      ]
+    },
+
+    "strings": {
+      "patterns": [
+        {
+          "name": "string.quoted.triple.nalu",
+          "begin": "\"\"\"",
+          "end": "\"\"\"",
+          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.nalu" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.string.end.nalu" } },
+          "patterns": [{ "include": "#string-content" }]
+        },
+        {
+          "name": "string.quoted.double.nalu",
+          "begin": "\"",
+          "end": "\"|$",
+          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.nalu" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.string.end.nalu" } },
+          "patterns": [{ "include": "#string-content" }]
+        },
+        {
+          "comment": "'cru': sem escapes e sem interpolação; numa linha só.",
+          "name": "string.quoted.single.raw.nalu",
+          "begin": "'",
+          "end": "'|$",
+          "beginCaptures": { "0": { "name": "punctuation.definition.string.begin.nalu" } },
+          "endCaptures": { "0": { "name": "punctuation.definition.string.end.nalu" } }
+        }
+      ]
+    },
+    "string-content": {
+      "patterns": [
+        { "name": "constant.character.escape.nalu", "match": "\\\\[ntr\"\\\\{}]" },
+        { "name": "invalid.illegal.escape.nalu", "match": "\\\\." },
+        { "name": "constant.character.escape.brace.nalu", "match": "\\{\\{|\\}\\}" },
+        { "name": "constant.other.placeholder.nalu", "match": "\\{\\s*\\}" },
+        { "include": "#interpolation" },
+        { "name": "invalid.illegal.brace.nalu", "match": "\\}" }
+      ]
+    },
+    "interpolation": {
+      "comment": "`{expr}` em texto com aspas duplas e em palavras de comando; fecha na mesma linha.",
+      "name": "meta.interpolation.nalu",
+      "contentName": "meta.embedded.line.nalu",
+      "begin": "\\{",
+      "end": "\\}|$",
+      "beginCaptures": { "0": { "name": "punctuation.section.embedded.begin.nalu" } },
+      "endCaptures": { "0": { "name": "punctuation.section.embedded.end.nalu" } },
+      "patterns": [{ "include": "#interpolation-expression" }]
+    },
+    "interpolation-expression": {
+      "patterns": [
+        { "include": "#capture" },
+        { "include": "#strings" },
+        { "include": "#keywords" },
+        { "include": "#builtins" },
+        { "include": "#types" },
+        { "include": "#numbers" },
+        { "include": "#calls" },
+        { "include": "#operators" },
+        {
+          "begin": "\\{",
+          "end": "\\}|$",
+          "beginCaptures": { "0": { "name": "punctuation.section.braces.begin.nalu" } },
+          "endCaptures": { "0": { "name": "punctuation.section.braces.end.nalu" } },
+          "patterns": [{ "include": "#interpolation-expression" }]
+        },
+        { "name": "variable.other.readwrite.nalu", "match": "\\b[a-z_][A-Za-z0-9_]*\\b" }
+      ]
+    },
+
+    "declarations": {
+      "patterns": [
+        {
+          "match": "\\b(fn)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.function.nalu" },
+            "2": { "name": "entity.name.function.nalu" }
+          }
+        },
+        {
+          "match": "\\b(struct)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.struct.nalu" },
+            "2": { "name": "entity.name.type.struct.nalu" }
+          }
+        },
+        {
+          "begin": "\\b(enum)\\s+([A-Za-z_][A-Za-z0-9_]*)\\s*(\\{)",
+          "end": "\\}",
+          "beginCaptures": {
+            "1": { "name": "storage.type.enum.nalu" },
+            "2": { "name": "entity.name.type.enum.nalu" },
+            "3": { "name": "punctuation.section.block.begin.nalu" }
+          },
+          "endCaptures": { "0": { "name": "punctuation.section.block.end.nalu" } },
+          "patterns": [
+            { "include": "#comments" },
+            { "name": "variable.other.enummember.nalu", "match": "\\b[A-Za-z_][A-Za-z0-9_]*\\b" },
+            { "name": "punctuation.separator.comma.nalu", "match": "," }
+          ]
+        },
+        {
+          "match": "\\b(enum)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.enum.nalu" },
+            "2": { "name": "entity.name.type.enum.nalu" }
+          }
+        },
+        {
+          "match": "\\b(let|var)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.nalu" },
+            "2": { "name": "variable.other.declaration.nalu" }
+          }
+        },
+        {
+          "match": "\\b(param)\\s+([A-Za-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "storage.type.param.nalu" },
+            "2": { "name": "variable.parameter.script.nalu" }
+          }
+        },
+        {
+          "match": "\\b(for)\\s+([a-z_][A-Za-z0-9_]*)(?:\\s*(,)\\s*([a-z_][A-Za-z0-9_]*))?\\s+(in)\\b",
+          "captures": {
+            "1": { "name": "keyword.control.nalu" },
+            "2": { "name": "variable.other.declaration.nalu" },
+            "3": { "name": "punctuation.separator.comma.nalu" },
+            "4": { "name": "variable.other.declaration.nalu" },
+            "5": { "name": "keyword.control.nalu" }
+          }
+        }
+      ]
+    },
+
+    "keywords": {
+      "patterns": [
+        { "comment": "`catch` has its own scope, to highlight where each failure is handled.", "name": "keyword.control.catch.nalu", "match": "\\bcatch\\b" },
+        { "comment": "`use \"file.nalu\"` at the start of a line (`use` is not reserved elsewhere).", "name": "keyword.control.import.nalu", "match": "^\\s*use(?=\\s+[\"'])" },
+        { "name": "keyword.control.fail.nalu", "match": "\\bfail\\b" },
+        { "name": "keyword.control.ignore.nalu", "match": "\\bignore\\b" },
+        { "name": "keyword.control.trycatch.nalu", "match": "\\btry\\b" },
+        { "name": "keyword.control.nalu", "match": "\\b(if|else|for|in|while|match|break|continue|return|defer|parallel|retry|native|test)\\b" },
+        { "name": "keyword.control.assert.nalu", "match": "\\bassert\\b" },
+        { "name": "storage.type.nalu", "match": "\\b(let|var)\\b" },
+        { "name": "storage.type.param.nalu", "match": "\\bparam\\b" },
+        { "name": "storage.type.function.nalu", "match": "\\bfn\\b" },
+        { "name": "storage.type.struct.nalu", "match": "\\bstruct\\b" },
+        { "name": "storage.type.enum.nalu", "match": "\\benum\\b" },
+        { "name": "variable.language.self.nalu", "match": "\\bself\\b" },
+        { "name": "constant.language.boolean.nalu", "match": "\\b(true|false)\\b" }
+      ]
+    },
+
+    "builtins": {
+      "patterns": [
+        {
+          "match": "(?<![\\w.])(env|fs|path|dirs|sys|proc|time|log|ui|math|http|regex|hash|encoding|archive|pkg|json)(\\.)([a-z_][A-Za-z0-9_]*)",
+          "captures": {
+            "1": { "name": "entity.name.namespace.nalu" },
+            "2": { "name": "punctuation.accessor.nalu" },
+            "3": { "name": "support.function.nalu" }
+          }
+        },
+        { "name": "support.function.builtin.nalu", "match": "(?<![\\w.])(print|exit|fmt|secret|embed|assert_fails)(?=\\s*\\()" },
+        { "name": "constant.language.nalu", "match": "(?<![\\w.])(os|dry_run)\\b" },
+        { "name": "variable.language.nalu", "match": "(?<![\\w.])(args|err)\\b" },
+        { "name": "variable.language.wildcard.nalu", "match": "(?<![\\w.])_(?!\\w)" }
+      ]
+    },
+
+    "types": {
+      "patterns": [
+        { "name": "support.type.primitive.nalu", "match": "(?<![\\w.])(str|int|bool|path|duration|secret)\\b(?!\\s*\\()" },
+        {
+          "match": "(?<![\\w.])(map)(\\[)",
+          "captures": {
+            "1": { "name": "support.type.nalu" },
+            "2": { "name": "punctuation.definition.typeparameters.begin.nalu" }
+          }
+        },
+        { "comment": "`[]str`: o `[]` de um tipo de lista.", "name": "storage.modifier.array.nalu", "match": "\\[\\](?=[A-Za-z\\[])" },
+        {
+          "comment": "`Ambiente.prod`: tipo e caso do enum (mas `Tipo.parse(` é chamada).",
+          "match": "\\b([A-Z][A-Za-z0-9_]*)(\\.)([a-z_][A-Za-z0-9_]*)\\b(?!\\s*\\()",
+          "captures": {
+            "1": { "name": "entity.name.type.nalu" },
+            "2": { "name": "punctuation.accessor.nalu" },
+            "3": { "name": "variable.other.enummember.nalu" }
+          }
+        },
+        { "name": "entity.name.type.nalu", "match": "\\b[A-Z][A-Za-z0-9_]*\\b" }
+      ]
+    },
+
+    "numbers": {
+      "patterns": [
+        { "name": "constant.numeric.duration.nalu", "match": "\\b\\d[\\d_]*(?:\\.\\d+)?(?:ms|s|m|h|d)(?:\\d[\\d_]*(?:\\.\\d+)?(?:ms|s|m|h|d))*\\b" },
+        { "name": "constant.numeric.hex.nalu", "match": "\\b0[xX][0-9A-Fa-f_]+\\b" },
+        { "name": "constant.numeric.integer.nalu", "match": "\\b\\d[\\d_]*\\b" }
+      ]
+    },
+
+    "calls": {
+      "patterns": [
+        {
+          "match": "(\\.)([a-z_][A-Za-z0-9_]*)(?=\\s*\\()",
+          "captures": {
+            "1": { "name": "punctuation.accessor.nalu" },
+            "2": { "name": "entity.name.function.member.nalu" }
+          }
+        },
+        {
+          "match": "(\\.)([a-z_][A-Za-z0-9_]*)\\b",
+          "captures": {
+            "1": { "name": "punctuation.accessor.nalu" },
+            "2": { "name": "variable.other.property.nalu" }
+          }
+        },
+        {
+          "match": "\\b([a-z_][A-Za-z0-9_]*)(?=\\s*\\()",
+          "captures": { "1": { "name": "entity.name.function.call.nalu" } }
+        },
+        {
+          "comment": "argumento nomeado, campo de struct ou parâmetro: `nome: …`",
+          "match": "\\b([a-z_][A-Za-z0-9_]*)\\s*(?=:(?!:))",
+          "captures": { "1": { "name": "variable.parameter.nalu" } }
+        },
+        {
+          "comment": "parâmetro de lambda: `filter(a => …)`",
+          "match": "(?<=[(,])\\s*([a-z_][A-Za-z0-9_]*)\\s*(?==>)",
+          "captures": { "1": { "name": "variable.parameter.lambda.nalu" } }
+        }
+      ]
+    },
+
+    "operators": {
+      "patterns": [
+        { "name": "keyword.operator.arrow.nalu", "match": "=>|->" },
+        { "name": "keyword.operator.range.nalu", "match": "\\.\\.=?" },
+        { "name": "keyword.operator.comparison.nalu", "match": "==|!=|<=|>=|<|>" },
+        { "name": "keyword.operator.logical.nalu", "match": "&&|\\|\\||!" },
+        { "name": "keyword.operator.assignment.compound.nalu", "match": "\\+=|-=|\\*=|/=|%=" },
+        { "name": "keyword.operator.assignment.nalu", "match": "=" },
+        { "name": "keyword.operator.arithmetic.nalu", "match": "[-+*/%]" },
+        { "name": "keyword.operator.pipe.nalu", "match": "\\|" }
+      ]
+    }
+  }
+}

@@ -1,0 +1,24 @@
+3 worker api|8080
+6,4
+3 port
+1 4
+2 5
+3 6
+3^9 3
+1 4
+true 0 false
+worker/9000 2
+name
+empty
+go: a.go,c.go
+rs: b.rs
+md: d.md
+2 true 3
+none
+0 1
+false false
+7 0
+api
+2
+0 1 2
+1

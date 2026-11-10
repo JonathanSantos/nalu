@@ -1,0 +1,31 @@
+// release_test.nalu: tests for the functions in release.nalu (same folder, same package).
+// `nalu test examples` loads functions and types, but does NOT run the top-level statements.
+
+test "patch bumps only the last number" {
+    let v = Version { major: 1, minor: 4, patch: 2 }
+    assert v.next(Part.patch).text() == "1.4.3"
+}
+
+test "minor resets the patch" {
+    let v = Version { major: 1, minor: 4, patch: 2 }
+    assert v.next(Part.minor).text() == "1.5.0"
+}
+
+test "major resets minor and patch" {
+    let v = Version { major: 1, minor: 4, patch: 2 }
+    assert v.next(Part.major).text() == "2.0.0"
+}
+
+test "accepts the v prefix" {
+    let v = parse_version("v2.0.1")  // if it fails, the test fails
+    assert v.major == 2
+    assert v.patch == 1
+}
+
+test "rejects an incomplete version" {
+    assert_fails(parse_version("2.0"))
+}
+
+test "rejects text that is not a number" {
+    assert_fails(parse_version("1.x.0"))
+}

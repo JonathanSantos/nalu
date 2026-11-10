@@ -1,0 +1,45 @@
+// Commands: $, {x} as one argument, mixed words, {list} spread, $( ), pipe, redirections,
+// value | $ cmd without an extra \n, if $ cmd, catch ignore, catch { err.code }, 127, the script's exit code.
+let x = "c d; $HOME *"
+$ printf "%s|%s\n" "a b" {x}
+$ printf "[%s]\n" {x}
+let nome = "f"
+$ printf "%s\n" ./{nome}.txt api={x}
+let xs = ["1", "2 3"]
+$ printf "<%s>" {xs}
+$ printf "\n"
+let cap = $(printf "a\nb\n\n")
+print("[{cap}]")
+let up = $(echo abc | tr a-z A-Z)
+print(up)
+if $ test -d . {
+    print("tem pasta")
+}
+if !$ test -d /nao/existe/mesmo {
+    print("sem pasta")
+}
+$ sh -c "exit 3" catch ignore
+$ sh -c "exit 3" catch {
+    print("código {err.code}")
+}
+"abc" | $ tr a-z A-Z
+$ printf "|\n"
+$ echo para-arquivo > saida.txt
+$ echo mais >> saida.txt
+$ cat < saida.txt
+let linhas = $(cat saida.txt | wc -l)
+print("linhas: {linhas.trim()}")
+$ sh -c "echo para-o-erro 1>&2" 2> err.txt
+print("stderr: {fs.read("err.txt").trim()}")
+$ sh -c "echo junto 1>&2" 2>&1
+let prog = "programa-que-nao-existe-xyz"
+$ {prog} catch {
+    print("não existe: {err.code}")
+}
+let falhou = $(sh -c "exit 9") catch "capturou falha"
+print(falhou)
+$ sh -c "exit 1" | cat catch {
+    print("pipe ok")
+}
+$ sh -c "exit 5"
+print("nunca")

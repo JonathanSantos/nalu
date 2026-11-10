@@ -1,0 +1,7 @@
+// exit() without an argument: code 0, even inside a loop.
+for i in 0..10 {
+    print(i)
+    if i == 1 {
+        exit()
+    }
+}

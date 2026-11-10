@@ -1,0 +1,5 @@
+// --verbose: `+ command` on stderr before running; log.debug starts writing.
+let x = "a b"
+$ echo {x}
+log.debug("detalhe")
+print("fim")

@@ -1,0 +1,39 @@
+// match: duration, bool, inclusive ranges, an arm with a block, an arm with fail in a match expression.
+fn tipo(ext: str) -> str {
+    return match ext {
+        "tgz" | "gz" => "tar"
+        "zip"        => "zip"
+        _            => fail "formato não suportado: {ext}"
+    }
+}
+
+let d = 30s
+match d {
+    30s => print("meio minuto")
+    _   => print("outro")
+}
+let b = false
+match b {
+    true  => print("sim")
+    false => print("não")
+}
+print(tipo("gz"), tipo("zip"))
+let t = tipo("rar") catch "?"
+print(t)
+for status in [200, 299, 300, 404, 500] {
+    match status {
+        200..300  => print("{status} ok")
+        300..=399 => print("{status} redireciona")
+        404       => print("{status} não encontrado")
+        _ => {
+            let grupo = status / 100
+            print("{status} grupo {grupo}")
+        }
+    }
+}
+let nivel = match 7 {
+    0..=5 => "baixo"
+    6 | 7 => "médio"
+    _     => "alto"
+}
+print(nivel)

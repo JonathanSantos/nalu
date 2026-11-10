@@ -1,0 +1,55 @@
+// Structs inside structs (D35): nested fields read, written, rebuilt, passed, matched and sent through `parallel`.
+struct Port {
+    number: int
+    proto: str = "tcp"
+}
+
+struct Service {
+    name: str
+    port: Port
+    tags: []str
+
+    fn url() -> str {
+        return "http://{self.name}:{self.port.number}"
+    }
+}
+
+struct Deploy {
+    svc: Service
+    replicas: int
+    groups: map[str][]str
+}
+
+fn bump(p: Port) -> Port {
+    return Port { ..p, number: p.number + 1 }
+}
+
+var d = Deploy { svc: Service { name: "api", port: Port { number: 80 }, tags: ["web"] }, replicas: 2, groups: { "a": ["x"] } }
+print(d.svc.name, d.svc.port.number, d.svc.port.proto, d.svc.url())
+d.svc.port.number = 8080
+d.svc.tags.push("public")
+d.replicas += 1
+print(d.svc.port.number, d.svc.tags.join(","), d.replicas)
+let s = d.svc
+print(s.url(), s.port.proto)
+d.svc.port = bump(d.svc.port)
+print(d.svc.port.number)
+var all = [d, Deploy { ..d, replicas: 9 }]
+all[1].svc.name = "worker"
+for x in all {
+    print("{x.svc.name} {x.svc.port.number} {x.replicas} {x.groups["a"][0]}")
+}
+$ echo {d.svc.name} {d.svc.port.number}
+let ports = all.map(x => x.svc.port.number)
+print(ports.join(","))
+let found = all.find(x => x.svc.name == "worker") catch d
+print(found.replicas)
+let k = match d.svc {
+    Service { port: p } if p.number > 1000 => "high {p.number}"
+    _                                      => "low"
+}
+print(k)
+let res = parallel for x in all {
+    x.svc
+}
+print(res[1].name, res[0].port.number)

@@ -1,0 +1,29 @@
+// json, hash, archive and fs.chmod: the same result on all three targets (D24).
+let doc = '{"name": "nalu", "version": "1.2.0", "tags": ["a", "b c", "é👍"], "deps": {"x": {"v": 3, "ok": true}, "y.z": null}, "n": -1.5e3, "vazio": [], "esc": "l1\nl2 \"q\" \\ /"}'
+print(json.get(doc, "name"), json.get(doc, "version"), json.get(doc, "n"))
+print(json.get(doc, "tags[2]"), json.get(doc, "tags.1"), json.get_list(doc, "tags").join("|"))
+print(json.get(doc, "deps.x"), json.get(doc, "deps.x.v"), json.get(doc, "deps.x.ok"))
+print(json.keys(doc, "deps").join(","), json.keys(doc, "").len(), json.get_list(doc, "vazio").len())
+print(json.has(doc, "deps.x"), json.has(doc, "nada"), json.has('{ruim', "a"))
+print(json.get(doc, "esc"))
+print(json.get(doc, "nada") catch "padrão", json.get(doc, "tags.9") catch "fora")
+let q = json.quote("a\"b\\c\nd\té")
+print(q, json.get("[{q}]", "0") == "a\"b\\c\nd\té")
+print(json.get("{{ruim", "a") catch "inválido")
+try {
+    print(json.get_list(doc, "name").len())
+} catch {
+    print("error: {err}")
+}
+print(hash.sha256("abc"), hash.sha256(""))
+let tmp = fs.temp_dir()
+fs.mkdir(tmp / "p")
+fs.write(tmp / "p" / "a.txt", "olá")
+print(hash.sha256_file(tmp / "p" / "a.txt"))
+archive.tar_create(tmp / "p.tgz", tmp / "p")
+archive.tar_extract(tmp / "p.tgz", tmp / "x")
+print(fs.read(tmp / "x" / "p" / "a.txt"))
+fs.chmod(tmp / "p" / "a.txt", "755")
+fs.chmod(tmp / "nao", "+x") catch {
+    print("chmod falhou: {err.code}")
+}

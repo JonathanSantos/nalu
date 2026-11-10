@@ -1,0 +1,7 @@
+// error: E060
+fn um() -> int {
+    return 1
+}
+test "um" {
+    assert_fails(um())
+}

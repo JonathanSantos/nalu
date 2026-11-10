@@ -1,0 +1,2 @@
+// error: E006
+let t = try fs.read("a")

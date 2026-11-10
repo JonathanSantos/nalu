@@ -1,0 +1,17 @@
+/// ambiente de destino
+param ambiente: Ambiente = Ambiente.dev
+/// versão a publicar
+param versao: str
+/// pastas para processar
+param pastas: []str = ["docs"]
+/// apaga também o cache
+param limpar_cache: bool
+/// espera entre tentativas
+param espera: duration = 30s
+/// token do registry
+param token: secret
+
+enum Ambiente { dev, stage, prod }
+
+print(ambiente, versao, pastas.len(), limpar_cache, "{espera}")
+token | $ cat

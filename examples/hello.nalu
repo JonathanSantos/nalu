@@ -1,0 +1,28 @@
+// hello.nalu: a first script.
+// Shows: param, let, interpolation {x}, match with ranges, a for loop with an inclusive range, chained `catch`.
+
+/// who to greet
+param name: str = "world"
+/// how many times to repeat the greeting
+param times: int = 1
+
+// env.get() fails when the variable is not set; `catch` tries the next one.
+// Linux and macOS use USER; Windows uses USERNAME.
+let user = env.get("USER") catch env.get("USERNAME") catch "someone"
+
+// match is an expression; ranges exclude the end (0..12 is 0 to 11).
+let part_of_day = match time.hour() {
+    0..12  => "good morning"
+    12..18 => "good afternoon"
+    _      => "good evening"
+}
+
+print("{part_of_day}, {user}! you are running on {os}.")
+
+for i in 1..=times {
+    print("hello, {name}! ({i}/{times})")
+}
+
+if times > 3 && name == "world" {
+    log.warn("the world says thanks, it got the message")
+}

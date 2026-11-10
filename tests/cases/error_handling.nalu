@@ -1,0 +1,51 @@
+// Errors: fail, `catch` in its five forms, try/catch, propagation through functions, err.code, exit code.
+fn dividir(a: int, b: int) -> int {
+    if b == 0 {
+        fail "divisão por zero", code: 3
+    }
+    return a / b
+}
+
+fn passo() -> int {
+    let x = dividir(1, 0)
+    return x + 1
+}
+
+fn avisa() {
+    fail "falhou aviso"
+}
+
+let a = dividir(10, 2) catch 0
+print(a)
+let b = dividir(1, 0) catch -1
+print(b)
+let c = passo() catch {
+    print("tratado: {err} ({err.code})")
+    0
+}
+print(c)
+avisa() catch ignore
+print("seguiu")
+try {
+    print("antes")
+    avisa()
+    print("nunca")
+} catch {
+    print("pegou: {err.message} {err.code}")
+}
+let x = env.get("NALU_NAO_EXISTE_X") catch env.get("NALU_NAO_EXISTE_Y") catch "padrão"
+print(x)
+let y = dividir(1, 0) catch dividir(8, 4) catch 0
+print(y)
+var voltas = 0
+for i in 0..5 {
+    voltas += 1
+    let r = dividir(i, i - 2) catch {
+        print("parou em {i}")
+        break
+    }
+    print("r={r}")
+}
+print("voltas {voltas}")
+let _z = dividir(1, 0) catch fail "contexto: {err}", code: 4
+print("nunca")

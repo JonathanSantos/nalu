@@ -1,0 +1,5 @@
+// error: E046
+fn f() {
+    print(self)
+}
+f()

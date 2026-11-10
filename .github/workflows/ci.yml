@@ -1,0 +1,65 @@
+# Testa o compilador e os scripts gerados onde eles vão rodar de verdade:
+# - Ubuntu: Bash 5 (alvo linux executado de fato) + pwsh 7.
+# - macOS: Bash 3.2 (alvo macos) + pwsh 7.
+# - Windows: Windows PowerShell 5.1 (`powershell`), o que vem em todo Windows 10/11.
+# - Alpine: Bash sobre BusyBox, para pegar diferenças de `date`, `stat`, `find`, `sort`.
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  testes:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            pwsh: pwsh
+          - os: macos-latest
+            pwsh: pwsh
+          - os: windows-latest
+            pwsh: powershell
+    runs-on: ${{ matrix.os }}
+    env:
+      NALU_PWSH: ${{ matrix.pwsh }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Versões
+        shell: bash
+        run: |
+          cargo --version
+          bash --version | head -1
+          ${{ matrix.pwsh }} -NoProfile -Command '$PSVersionTable.PSVersion.ToString()'
+      - name: Build
+        run: cargo build --release
+      - name: Testes
+        run: cargo test
+      - name: Formatação (exemplos e pacote de teste)
+        if: runner.os == 'Linux'
+        run: target/release/nalu fmt --check examples tests/pacote
+      - name: Runtime Bash (alvo linux em Bash 4+)
+        if: runner.os == 'Linux'
+        run: bash runtime/bash/tests.sh linux
+      - name: Benchmarks
+        if: runner.os != 'Windows'
+        shell: bash
+        run: |
+          alvo=macos; [ "$RUNNER_OS" = Linux ] && alvo=linux
+          for c in laco mapa lista; do
+            target/release/nalu build tests/bench/$c.nalu --target $alvo -o /tmp/bench >/dev/null
+            /usr/bin/time -p bash /tmp/bench/$c.$alvo.sh
+          done
+
+  alpine:
+    runs-on: ubuntu-latest
+    container: alpine:3.20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Dependências
+        run: apk add --no-cache cargo bash tar curl coreutils-less || apk add --no-cache cargo bash tar curl
+      - name: Testes
+        run: cargo test
+      - name: Runtime Bash (BusyBox)
+        run: bash runtime/bash/tests.sh linux

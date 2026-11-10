@@ -1,0 +1,23 @@
+// Um teste falha de propósito; outro falha por erro não tratado. `nalu test` sai com código 1.
+test "divide inteiros" {
+    assert dividir(10, 3) == 3
+}
+
+test "zero falha" {
+    assert_fails(dividir(1, 0))
+}
+
+test "falha de propósito" {
+    assert dividir(9, 3) == 4
+}
+
+test "erro não tratado" {
+    let x = dividir(1, 0)
+    assert x == 0
+}
+
+test "vários asserts" {
+    let v = dividir(-7, 2)
+    assert v == -3
+    assert v < 0 && v > -4
+}

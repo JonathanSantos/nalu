@@ -1,0 +1,6 @@
+// native: fixed text for each shell, not analyzed.
+native {
+    bash: 'echo nativo'
+    powershell: '[Console]::Out.WriteLine("nativo")'
+}
+print("depois")

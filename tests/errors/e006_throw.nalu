@@ -1,0 +1,2 @@
+// error: E006
+throw "deu ruim"

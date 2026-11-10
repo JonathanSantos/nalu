@@ -1,0 +1,48 @@
+// Lists: methods, lambdas, ordinal sort, slice, copy.
+var xs = [3, 1, 2]
+xs.push(10)
+print(xs.len(), xs.join(","))
+let ys = xs.sort()
+print(ys.join(","), xs.join(","))
+print(xs.reverse().join(","))
+let ultimo = xs.pop()
+print(ultimo, xs.len())
+print(xs.filter(x => x > 1).join(","))
+print(xs.map(x => x * 10).join(","))
+print(xs.any(x => x == 2), xs.all(x => x > 0), xs.all(x => x > 1))
+print(xs.find(x => x < 3))
+let nada = xs.find(x => x > 100) catch -1
+print(nada)
+print(xs.contains(2), xs.index_of(2), xs.index_of(9))
+print(xs.sum(), xs.first(), xs.last(), xs[0], xs[2])
+print(xs.slice(1).join(","), xs.slice(0, 2).join(","), xs.slice(1, 2).join(","))
+print(xs[99] catch -1)
+var repetidos = [1, 1, 2, 1, 3, 2]
+print(repetidos.unique().join(","))
+let palavras = ["b", "B", "a", "_", "A"]
+print(palavras.sort().join(" "))
+print(palavras.sort_by(p => p.lower()).join(" "))
+let vazia: []str = []
+print(vazia.len(), vazia.len() == 0, "[{vazia.join(",")}]")
+let primeiro = vazia.first() catch "nenhum"
+print(primeiro)
+var ws = ["x", "y"]
+ws[0] = "z"
+let copia = ws
+ws.push("w")
+print(ws.join(""), copia.join(""))
+let limite = 2
+let rotulos = xs.map(n => {
+    if n > limite {
+        return "alto"
+    }
+    return "baixo"
+})
+print(rotulos.join(","))
+for i, x in xs {
+    print("{i}:{x}")
+}
+let textos = xs.map(n => "<{n}>")
+print(textos.join(""))
+let nums = [10, 9, 100]
+print(nums.sort().join(","), nums.sort_by(n => -n).join(","))

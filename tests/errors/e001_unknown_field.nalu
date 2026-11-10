@@ -1,0 +1,6 @@
+// error: E001
+struct P {
+    nome: str
+}
+let p = P { nome: "a" }
+print(p.idade)

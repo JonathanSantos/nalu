@@ -1,0 +1,5 @@
+// error: E020
+let d = 5s
+if d > 0 {
+    print("ok")
+}

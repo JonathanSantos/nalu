@@ -1,0 +1,4 @@
+// error: E055
+use "lib/nope.nalu"
+
+print(1)

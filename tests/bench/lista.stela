@@ -1,0 +1,22 @@
+// lista: 5.000 itens, filter/map/sort/join e chamadas de função com struct
+struct Item {
+    nome: string
+    peso: int
+}
+
+func dobro(x: int): int {
+    return x * 2
+}
+
+let itens: Item[] = []
+for i of 0..5_000 {
+    itens.push({ nome: "item{{i}}", peso: (i * 37) % 101 })
+}
+const pesados = itens.filter(x => x.peso > 50)
+const pesos = pesados.map(x => dobro(x.peso))
+const ordenados = pesos.sort()
+let soma = 0
+for p of ordenados {
+    soma += p
+}
+print("pesados={{pesados.length}} soma={{soma}} primeiro={{try ordenados.first()}} ultimo={{try ordenados.last()}}")

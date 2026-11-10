@@ -1,0 +1,19 @@
+// `parallel for` that returns structs (fields that are lists too), and `max: 0` (treated as 1).
+struct R {
+    name: str
+    n: int
+    tags: []str
+    ok: bool
+}
+
+let rs = parallel for x in ["a", "bb", ""] {
+    R { name: x, n: x.len(), tags: [x, "t y"], ok: x != "" }
+}
+for r in rs {
+    print("[{r.name}] {r.n} {r.tags.join("|")} {r.ok}")
+}
+print(rs.len())
+let ns = parallel(max: 0) for x in [3, 1, 2] {
+    x * 10
+}
+print(ns.join(","))

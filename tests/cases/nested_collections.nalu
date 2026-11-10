@@ -1,0 +1,86 @@
+// Nested collections (D34): `[][]T` and `map[K][]T` (literals, items, loops, lambdas, methods, maps of lists).
+struct Table {
+    name: str
+    rows: [][]str
+}
+
+fn widths(rows: [][]str) -> []int {
+    var w: []int = []
+    for row in rows {
+        for i, cell in row {
+            if i >= w.len() {
+                w.push(cell.len())
+            } else if cell.len() > w[i] {
+                w[i] = cell.len()
+            }
+        }
+    }
+    return w
+}
+
+fn transpose(m: [][]int) -> [][]int {
+    var out: [][]int = []
+    if m.len() == 0 {
+        return out
+    }
+    for j in 0..m[0].len() {
+        out.push(m.map(r => r[j]))
+    }
+    return out
+}
+
+var rows: [][]str = [["name", "port"], ["api", "8080"]]
+rows.push(["worker", "9000"])
+print(rows.len(), rows[2][0], rows[1].join("|"))
+print(widths(rows).join(","))
+let t = Table { name: "svc", rows: rows }
+print(t.rows.len(), t.rows[0][1])
+let m: [][]int = [[1, 2, 3], [4, 5, 6]]
+for r in transpose(m) {
+    print(r.join(" "))
+}
+let sq = [1, 2, 3].map(n => [n, n * n])
+print(sq[2].join("^"), sq.len())
+let big = m.filter(r => r.sum() > 6)
+print(big.len(), big[0][0])
+print(m.contains([4, 5, 6]), m.index_of([1, 2, 3]), m.contains([4, 5]))
+var last = rows.pop()
+print(last.join("/"), rows.len())
+let first = rows.first() catch []
+print(first[0])
+let none: [][]str = []
+let f2 = none.first() catch ["empty"]
+print(f2[0])
+var groups: map[str][]str = {}
+for f in ["a.go", "b.rs", "c.go", "d.md"] {
+    let ext = path.abs(f).ext
+    var g = groups[ext] catch []
+    g.push(f)
+    groups[ext] = g
+}
+for k, v in groups {
+    print("{k}: {v.join(",")}")
+}
+print(groups["go"].len(), groups.has("rs"), groups.values().len())
+let miss = groups["zz"] catch ["none"]
+print(miss[0])
+let lit: map[str][]int = { "a": [1], "b": [] }
+print(lit["b"].len(), lit["a"][0])
+let ok = [[true, false], [false]]
+print(ok[0][1], ok[1][0])
+var grid: [][]int = [[0, 0], [0, 0]]
+var row1 = grid[1]
+row1[0] = 7
+grid[1] = row1
+print(grid[1][0], grid[0][0])
+let rs = rows.sort_by(r => r[0])
+print(rs[0][0])
+let u = [[1], [1], [2]].unique()
+print(u.len())
+let empty_inner: [][]str = [[], [""], ["", ""]]
+print(empty_inner[0].len(), empty_inner[1].len(), empty_inner[2].len())
+var i = 0
+while grid[i][0] == 0 {
+    i += 1
+}
+print(i)

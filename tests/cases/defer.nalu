@@ -1,0 +1,32 @@
+// defer: reverse order, arguments evaluated immediately, runs on failure and on exit() inside a function.
+fn limpar(s: str) {
+    print("limpar {s}")
+}
+
+fn trabalho() {
+    defer limpar("primeiro")
+    defer limpar("segundo")
+    print("trabalhando")
+}
+
+fn falha() {
+    defer limpar("na falha")
+    fail "deu ruim"
+}
+
+fn sai() {
+    defer limpar("função")
+    exit(3)
+}
+
+trabalho()
+falha() catch {
+    print("tratado: {err}")
+}
+var v = "v1"
+defer limpar(v)
+v = "v2"
+defer limpar("topo")
+print("antes do exit, v={v}")
+sai()
+print("nunca")

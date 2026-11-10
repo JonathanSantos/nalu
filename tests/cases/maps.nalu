@@ -1,0 +1,29 @@
+// Maps: literal, [k], catch, has, remove, insertion order, for k, v, copy.
+var portas = { "api": 8080, "web": 3000 }
+portas["worker"] = 9090
+portas["db"] = 5432
+portas.remove("web")
+portas.remove("nao-existe")
+print(portas.len(), portas.keys().join(","))
+print(portas.values().join(","))
+print(portas["api"], portas["db"])
+let p = portas["x"] catch 0
+print(p)
+print(portas.has("api"), portas.has("web"), portas.len() == 0)
+for nome, porta in portas {
+    print("{nome}={porta}")
+}
+portas["api"] = 1
+print(portas.keys().join(","), portas["api"])
+portas.remove("worker")
+portas["worker"] = 2
+print(portas.keys().join(","))
+let vazio: map[str]int = {}
+print(vazio.len() == 0, vazio.len())
+var copia = portas
+copia["novo"] = 1
+print(portas.len(), copia.len())
+let numeros = { 1: "um", 2: "dois" }
+print(numeros[2], numeros.keys().join("+"))
+let g = numeros[3] catch "nenhum"
+print(g)

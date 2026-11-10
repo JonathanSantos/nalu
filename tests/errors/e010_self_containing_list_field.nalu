@@ -1,0 +1,8 @@
+// error: E010
+// A struct can't hold a list of itself (a tree): keep something that identifies the items instead.
+struct Node {
+    name: str
+    children: []Node
+}
+
+print(1)

@@ -1,0 +1,22 @@
+linha1|linha2
+14 true
+true true false true
+.oculto,a.txt,b.log,sub
+.oculto,a.txt,b.log,z.txt
+sub/dentro/z.txt
+a.txt
+a.txt,b.log,sub
+.oculto
+sub
+b.log
+[]
+false 14
+L1,L2
+z
+false
+padrão
+recusou .
+recusou vazio
+sem pasta
+true 0
+false

@@ -1,0 +1,19 @@
+// path: properties (text only), /, ~, abs, root; the disk is fs's job.
+let p: path = "/tmp/proj/arquivo.tar.gz"
+print(p.name, p.stem, p.ext, p.parent.name)
+let d: path = "dir/.bashrc"
+print(d.name, "[{d.ext}]", d.stem)
+let n: path = "semext"
+print("[{n.ext}]", n.stem, n.name)
+let j = p.parent / "x" / "y.txt"
+print(j.name, j.parent.name, j.parent.parent.name)
+let a: path = "a"
+print((p / "b").name, (a / "b").parent.name)
+let h: path = "~/algo"
+print(h.name, h.parent == dirs.home())
+let inexistente: path = "nao/existe.txt"
+print(fs.exists(inexistente), fs.is_dir(inexistente), fs.is_file(inexistente), fs.size(inexistente) catch -1, fs.modified(inexistente) catch -1)
+let abs = path.abs("a/./b/../c")
+print(abs == dirs.cwd() / "a" / "c")
+let aqui: path = "."
+print(fs.is_dir(aqui), fs.modified(dirs.cwd()) > 0)

@@ -1,0 +1,6 @@
+// error: E040
+fn um() -> int {
+    return 1
+}
+let x = um() catch 0
+print(x)

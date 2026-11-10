@@ -1,0 +1,3 @@
+// warning: W001
+let sobra = 42
+print("oi")

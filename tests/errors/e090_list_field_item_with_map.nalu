@@ -1,0 +1,13 @@
+// error: E090
+// A list of structs as a field is kept as one list per field of the item, so the item's fields must be
+// scalars or lists of scalars: a map field is still planned.
+struct Member {
+    name: str
+    labels: map[str]str
+}
+
+struct Team {
+    members: []Member
+}
+
+print(1)

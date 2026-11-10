@@ -1,0 +1,20 @@
+// Enums: qualified names, exhaustive match without the type name, parse, text.
+enum Ambiente { dev, stage, prod }
+
+let a = Ambiente.stage
+print(a, "{a}", "[{a}]")
+match a {
+    dev          => print("d")
+    stage | prod => print("s ou p")
+}
+let b = Ambiente.parse("prod") catch Ambiente.dev
+let c = Ambiente.parse("xyz") catch Ambiente.dev
+print(b, c)
+print(a == Ambiente.stage, a != Ambiente.prod)
+let replicas = match b {
+    prod => 6
+    _    => 1
+}
+print(replicas)
+let todos = [Ambiente.dev, Ambiente.prod]
+print(todos.map(e => "{e}").join(","))

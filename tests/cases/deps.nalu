@@ -1,0 +1,6 @@
+// Programs with a fixed name are checked at the start: nothing runs if one is missing (code 127).
+print("antes")
+if proc.exists("opcional-que-nao-existe-456") {
+    $ opcional-que-nao-existe-456
+}
+$ programa-que-nao-existe-123 --versao

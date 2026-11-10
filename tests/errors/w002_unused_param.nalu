@@ -1,0 +1,4 @@
+// warning: W002
+/// unused
+param nivel: int = 1
+print("oi")

@@ -1,0 +1,20 @@
+// 64-bit integers: truncation toward zero, % with the sign of the dividend, 1_000, 0xFF, to_int.
+print(7 / 2, -7 / 2, 7 % 3, -7 % 3, 7 % -3)
+print(1_000_000 + 0xFF)
+print(2 * 3 + 4, 2 * (3 + 4), 10 - 2 - 3, -(4 - 6))
+print(9223372036854775807)
+let grande = 9007199254740993
+print(grande + 0, grande * 1, grande / 1)
+print(9007199254740995 / 2, 9007199254740995 % 2)
+print("42".to_int() + 1, " -7 ".to_int())
+let ruim = "4x".to_int() catch -1
+let vazio = "".to_int() catch -2
+let mais = "+5".to_int() catch -3
+let estouro = "9223372036854775808".to_int() catch -4
+let maximo = "9223372036854775807".to_int() catch -5
+let decimal = "1.5".to_int() catch -6
+print(ruim, vazio, mais, estouro, maximo, decimal)
+print(math.min(3, -2), math.max(3, -2), math.abs(-9))
+let n = 5
+print("{n}!", "{n * n}")
+print(1 < 2, 2 <= 2, 3 > 4, 3 >= 4, 5 == 5, 5 != 5)

@@ -1,0 +1,55 @@
+// Lists of structs as fields (D35): read, written in place, pushed, popped, passed, filtered and copied.
+struct Port {
+    number: int
+    proto: str = "tcp"
+}
+
+struct Service {
+    name: str
+    ports: []Port
+    tags: []str = []
+}
+
+struct Config {
+    env: str
+    services: []Service
+}
+
+fn names(c: Config) -> str {
+    return c.services.map(s => s.name).join(",")
+}
+
+var cfg = Config {
+    env: "prod",
+    services: [
+        Service { name: "api", ports: [Port { number: 80 }, Port { number: 443 }], tags: ["web"] },
+        Service { name: "db", ports: [Port { number: 5432 }] },
+    ],
+}
+print(cfg.services.len(), cfg.services[0].name, cfg.services[0].ports[1].number, cfg.services[1].ports[0].proto)
+print(names(cfg))
+cfg.services[1].name = "postgres"
+cfg.services[0].ports[0].number = 8080
+cfg.services.push(Service { name: "cache", ports: [] })
+cfg.services[2].ports.push(Port { number: 6379, proto: "redis" })
+print(names(cfg), cfg.services[0].ports[0].number, cfg.services[2].ports[0].proto)
+for s in cfg.services {
+    print("{s.name}: {s.ports.map(p => "{p.number}/{p.proto}").join(" ")} [{s.tags.join(",")}]")
+}
+let last = cfg.services.pop()
+print(last.name, cfg.services.len())
+let web = cfg.services.filter(s => s.tags.contains("web"))
+print(web.len(), web[0].ports.len())
+let one = cfg.services[0]
+print(one.name, one.ports[1].number)
+var copy = cfg
+copy.services = []
+print(cfg.services.len(), copy.services.len())
+let all = [cfg, copy]
+print(all[0].services[1].ports[0].number, all[1].services.len())
+let found = cfg.services.find(s => s.name == "postgres") catch Service { name: "none", ports: [] }
+print(found.ports[0].number)
+let r = parallel for s in cfg.services {
+    s.ports.len()
+}
+print(r.join(","))

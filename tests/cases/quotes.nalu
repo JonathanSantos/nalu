@@ -1,0 +1,12 @@
+// Typographic quotes, $ and backticks in literals: they must not close strings or expand in PowerShell.
+let a = 'it’s ok'
+let b = "it’s “ok” „x‟ ‚y‛"
+let c = "‘simples’ e $HOME e `crase` e $(x) e $\{y\} e @(z)"
+print(a)
+print(b)
+print(c)
+print(a.len())
+$ echo {b}
+$ echo "aspas \"duplas\" no argumento" 'e simples'
+let vazio = ""
+print("[{vazio}]", "{{}}")

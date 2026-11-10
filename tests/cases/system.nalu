@@ -1,0 +1,10 @@
+// sys.*, proc.*, dirs.*.
+print(sys.cpus() > 0, sys.user() != "", sys.hostname() != "", sys.arch() != "")
+print(proc.exists("programa-que-nao-existe-xyz"))
+let w = proc.which("programa-que-nao-existe-xyz") catch "nada"
+print(w)
+print(fs.is_dir(dirs.cwd()), fs.is_dir(dirs.temp()), fs.is_dir(dirs.home()))
+print(dirs.config("nalu-x").name, dirs.cache("nalu-x").name, dirs.data("nalu-x").name)
+let ci = sys.is_ci()
+let adm = sys.is_admin()
+print(ci == ci, adm == adm)

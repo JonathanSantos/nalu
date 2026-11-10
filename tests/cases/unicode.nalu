@@ -1,0 +1,11 @@
+// Unicode: len by code point, upper/lower outside ASCII, ordinal comparison and sort.
+let s = "ação"
+print(s.len(), s.upper(), "AÇÃO".lower())
+print("a" < "B", "B" < "a", "é" > "z", "Z" < "a")
+print(s.chars().join("|"), s.slice(1, 3), s.index_of("ã"))
+let e = "👍ok"
+print(e.len(), e.slice(1), e.chars().len(), e.index_of("o"), e.slice(0, 1) == "👍")
+print("é".pad_left(3, "*"), "👍".pad_right(3, "-"))
+let l = ["b", "a", "B", "á", "A"]
+print(l.sort().join(","))
+print("ç" == "ç", "ç" != "c")

@@ -1,0 +1,387 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nalu brand</title>
+<link rel="icon" href="logo/nalu-favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Recursive:slnt,wght,CASL,CRSV,MONO@-15..0,300..1000,0..1,0..1,0..1&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* ---- materials (fixed; they don't change with the theme) ---- */
+  --nalu-moana: #0b2b3d;    /* Moana, the open ocean: ink on light, the deep surfaces on dark */
+  --nalu-abyss: #07161f;    /* Abyss: the dark background and the terminal */
+  --nalu-foam: #e6f3f1;     /* Foam: ink on dark */
+  --nalu-salt: #f3f8f8;     /* Salt: light surfaces */
+  --nalu-reef: #0a7480;     /* Reef: the mark and actions on light */
+  --nalu-lagoon: #36d1c4;   /* Lagoon: the mark and actions on dark; the signature color */
+  --nalu-lehua: #c42c46;    /* Lehua blossom: failure and recovery on light */
+  --nalu-lehua-lt: #ff8094; /* Lehua blossom: failure and recovery on dark */
+  --nalu-limu: #1d7a4c;     /* Limu (seaweed): success on light */
+  --nalu-limu-lt: #74d7a0;  /* Limu (seaweed): success on dark */
+  --nalu-olena: #8f5600;    /* ʻŌlena (turmeric): warnings on light */
+  --nalu-olena-lt: #f5be5b; /* ʻŌlena (turmeric): warnings on dark */
+  --nalu-sand: #f1e9da;     /* Sand: the shore, where generated scripts land (illustrations only) */
+
+  /* ---- roles: light theme ---- */
+  --bg: #ffffff;
+  --surface: var(--nalu-salt);
+  --surface-2: #e9f2f2;
+  --code-bg: #eef5f5;
+  --ink: var(--nalu-moana);
+  --ink-soft: #4a6573;
+  --rule: #d6e4e6;
+  --action: var(--nalu-reef);  /* what you write and what you do: keywords, links, actions, {x}, $ */
+  --fail: var(--nalu-lehua);  /* failure and recovery: catch, fail, ignore, try, errors */
+  --ok: var(--nalu-limu);  /* it worked: passing tests, strings in code */
+  --warn: var(--nalu-olena);  /* warnings */
+  --mark: var(--nalu-reef);  /* the mark (always one color) */
+  --shore: var(--nalu-sand);  /* where generated scripts land, in diagrams */
+  --shore-ink: #5c4a2a;
+  color-scheme: light;
+
+  /* ---- code (syntax highlighting) ---- */
+  --syn-keyword: var(--action);    /* normal: let var fn return struct enum param if else for in while match break continue defer parallel retry native test self true false */
+  --syn-fail: var(--fail);         /* bold: catch fail ignore try */
+  --syn-string: var(--ok);         /* normal: "…" and '…' */
+  --syn-interp: var(--action);     /* normal: the braces of {x}, in strings and commands */
+  --syn-command: var(--action);    /* bold: the $ of $ cmd and $( ) */
+  --syn-program: var(--ink);       /* bold: the program name after $ */
+  --syn-comment: var(--ink-soft);  /* italic: // and /// */
+  --syn-type: var(--ink-soft);     /* normal: str int bool path duration secret and capitalized names */
+  --syn-plain: var(--ink);         /* normal: the rest: names, numbers, operators */
+
+  /* ---- terminal (always dark, in both themes) ---- */
+  --term-bg: #04111a;    /* terminal block background */
+  --term-fg: #d9ebe8;    /* ANSI 0: regular text */
+  --term-dim: #7f98a1;   /* ANSI 2: the | gutter, line numbers, '+ cmd' from --verbose, '-->' */
+  --term-bold: #f2faf8;  /* ANSI 1: error location, generated file names */
+  --term-error: #ff8094; /* ANSI 1;31: 'error[E…]:', 'error:', the ^^^ underline, 'FAILED' */
+  --term-warn: #f5be5b;  /* ANSI 33: 'warning[W…]:', 'warning:' */
+  --term-help: #36d1c4;  /* ANSI 36: '= help:', '[dry-run]', 'info:' */
+  --term-ok: #74d7a0;    /* ANSI 32: 'ok' (tests and build) */
+
+  /* ---- type ---- */
+  --font-display: Recursive, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-display-axes: 'MONO' 0, 'CASL' 0.6;
+  --font-display-weight: 800;  /* headlines and big numbers; never paragraphs or code */
+  --font-body: Recursive, ui-sans-serif, system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-body-axes: 'MONO' 0, 'CASL' 0;
+  --font-body-weight: 400;  /* prose and interface */
+  --font-label: Recursive, ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-label-axes: 'MONO' 1, 'CASL' 0;
+  --font-label-weight: 600;  /* eyebrows, tags and table heads: uppercase, tracked */
+  --font-mono: Recursive, ui-monospace, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace;
+  --font-mono-axes: 'MONO' 1, 'CASL' 0;
+  --font-mono-weight: 400;  /* code, terminal, values; no ligatures */
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 19px;
+  --text-xl: 23px;
+  --text-2xl: 28px;
+  --text-3xl: 36px;
+  --text-4xl: 48px;
+  --text-5xl: 68px;
+  --leading-body: 1.6;
+  --leading-title: 1.05;
+  --tracking-title: -.025em;
+  --tracking-label: .12em;
+
+  /* ---- shape and space ---- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 72px;
+  --space-9: 112px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: var(--nalu-abyss);
+    --surface: #0c202b;
+    --surface-2: #11293a;
+    --code-bg: #0a1c26;
+    --ink: var(--nalu-foam);
+    --ink-soft: #93acb4;
+    --rule: #1d3746;
+    --action: var(--nalu-lagoon);  /* what you write and what you do: keywords, links, actions, {x}, $ */
+    --fail: var(--nalu-lehua-lt);  /* failure and recovery: catch, fail, ignore, try, errors */
+    --ok: var(--nalu-limu-lt);  /* it worked: passing tests, strings in code */
+    --warn: var(--nalu-olena-lt);  /* warnings */
+    --mark: var(--nalu-lagoon);  /* the mark (always one color) */
+    --shore: #1f2a26;  /* where generated scripts land, in diagrams */
+    --shore-ink: #e3d3b3;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: var(--nalu-abyss);
+  --surface: #0c202b;
+  --surface-2: #11293a;
+  --code-bg: #0a1c26;
+  --ink: var(--nalu-foam);
+  --ink-soft: #93acb4;
+  --rule: #1d3746;
+  --action: var(--nalu-lagoon);  /* what you write and what you do: keywords, links, actions, {x}, $ */
+  --fail: var(--nalu-lehua-lt);  /* failure and recovery: catch, fail, ignore, try, errors */
+  --ok: var(--nalu-limu-lt);  /* it worked: passing tests, strings in code */
+  --warn: var(--nalu-olena-lt);  /* warnings */
+  --mark: var(--nalu-lagoon);  /* the mark (always one color) */
+  --shore: #1f2a26;  /* where generated scripts land, in diagrams */
+  --shore-ink: #e3d3b3;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; color: var(--ink); background: var(--bg); font-family: var(--font-body); font-variation-settings: var(--font-body-axes);
+  font-size: var(--text-md); line-height: var(--leading-body); -webkit-font-smoothing: antialiased; }
+a { color: var(--action); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--action); outline-offset: 3px; border-radius: 4px; }
+code, pre, .mono { font-family: var(--font-mono); font-variation-settings: var(--font-mono-axes); font-feature-settings: "liga" 0, "calt" 0; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 var(--space-5); }
+header.top { display: flex; align-items: center; justify-content: space-between; padding: var(--space-5) 0; }
+header.top svg { height: 34px; width: auto; }
+header.top nav a { margin-left: var(--space-5); color: var(--ink-soft); text-decoration: none; font-size: var(--text-sm); }
+header.top nav a:hover { color: var(--action); }
+.eyebrow { font-family: var(--font-label); font-variation-settings: var(--font-label-axes); font-weight: 600; font-size: var(--text-xs);
+  letter-spacing: var(--tracking-label); text-transform: uppercase; color: var(--action); }
+h1, h2, h3 { font-family: var(--font-display); font-variation-settings: var(--font-display-axes); font-weight: var(--font-display-weight);
+  letter-spacing: var(--tracking-title); line-height: var(--leading-title); margin: 0; }
+h1 { font-size: clamp(44px, 8vw, var(--text-5xl)); }
+h2 { font-size: var(--text-3xl); margin: var(--space-2) 0 var(--space-4); }
+h3 { font-size: var(--text-xl); margin-bottom: var(--space-2); }
+p.lede { font-size: var(--text-lg); color: var(--ink-soft); max-width: 62ch; }
+.hero { display: grid; grid-template-columns: 1.2fr 1fr; gap: var(--space-7); align-items: center; padding: var(--space-8) 0 var(--space-7); }
+.hero .art { background: var(--surface); border-radius: var(--radius-xl); aspect-ratio: 1; display: grid; place-items: center; position: relative; overflow: hidden; }
+.hero .art svg.big { width: 62%; height: auto; position: relative; }
+.swell { position: absolute; inset: 0; width: 100%; height: 100%; }
+.swell path { fill: none; stroke: var(--rule); stroke-width: 1.2; }
+section { padding: var(--space-8) 0; border-top: 1px solid var(--rule); }
+.readings { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-5); margin-top: var(--space-6); }
+.card { background: var(--surface); border-radius: var(--radius-lg); padding: var(--space-5); }
+.card svg { width: 96px; height: 96px; display: block; margin-bottom: var(--space-4); }
+.card p { margin: 0; color: var(--ink-soft); }
+.mk { fill: var(--mark); }
+.hl { fill: var(--mark); } .lo { fill: var(--rule); }
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); align-items: start; }
+.construct { width: 100%; max-width: 460px; background: var(--surface); border-radius: var(--radius-lg); }
+.construct .g { stroke: var(--rule); stroke-width: .12; fill: none; } .construct .g8 { stroke-width: .25; }
+.construct .m { fill: var(--mark); opacity: .18; }
+.construct .cl { fill: none; stroke: var(--action); stroke-width: .35; stroke-dasharray: 1.2 .8; }
+.construct .c { fill: var(--fail); }
+.construct .lb { font: 600 2.6px var(--font-mono); fill: var(--ink-soft); text-anchor: middle; }
+ul.rules { padding-left: 1.1em; } ul.rules li { margin-bottom: var(--space-2); }
+.sizes { display: flex; align-items: end; gap: var(--space-5); margin-top: var(--space-4); }
+.sizes figure { margin: 0; text-align: center; font-size: var(--text-xs); color: var(--ink-soft); }
+.space { display: inline-grid; place-items: center; padding: 18px; outline: 1px dashed var(--fail); background: var(--surface); border-radius: 6px; }
+.palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: var(--space-4); }
+.sw { margin: 0; background: var(--surface); border-radius: var(--radius-lg); overflow: hidden; }
+.sw .chip { height: 88px; box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ink) 14%, transparent); border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+details.contrast { margin-top: var(--space-6); background: var(--surface); border-radius: var(--radius-lg); padding: var(--space-4) var(--space-5); }
+details.contrast summary { cursor: pointer; color: var(--ink-soft); } details.contrast summary b { color: var(--ok); }
+details.contrast table { margin-top: var(--space-4); }
+.sw figcaption { padding: var(--space-3) var(--space-4); display: grid; gap: 2px; font-size: var(--text-sm); }
+.sw code { color: var(--ink-soft); font-size: var(--text-xs); } .sw span { color: var(--ink-soft); font-size: var(--text-xs); line-height: 1.4; }
+table { border-collapse: collapse; width: 100%; font-size: var(--text-sm); }
+th, td { text-align: left; padding: var(--space-2) var(--space-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th { font-family: var(--font-label); font-variation-settings: var(--font-label-axes); font-size: var(--text-xs); letter-spacing: var(--tracking-label);
+  text-transform: uppercase; color: var(--ink-soft); }
+td i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; vertical-align: -2px; margin-right: 6px; border: 1px solid var(--rule); }
+tr.bad td { color: var(--fail); }
+.type .row { display: grid; grid-template-columns: 160px 1fr; gap: var(--space-5); padding: var(--space-5) 0; border-bottom: 1px solid var(--rule); align-items: baseline; }
+.type .row .meta { color: var(--ink-soft); font-size: var(--text-sm); }
+.disp { font-family: var(--font-display); font-variation-settings: var(--font-display-axes); font-weight: 800; font-size: var(--text-4xl); letter-spacing: var(--tracking-title); line-height: 1.05; }
+.body { font-size: var(--text-lg); max-width: 60ch; }
+.monos { font-size: var(--text-md); }
+.lab { font-family: var(--font-label); font-variation-settings: var(--font-label-axes); font-weight: 600; letter-spacing: var(--tracking-label); text-transform: uppercase; font-size: var(--text-sm); }
+pre.code { background: var(--code-bg); border-radius: var(--radius-lg); padding: var(--space-5); overflow-x: auto; font-size: var(--text-sm); line-height: 1.65; margin: 0; }
+.k, .i, .x { color: var(--action); } .x { font-weight: 700; } .f { color: var(--fail); font-weight: 700; } .s { color: var(--ok); }
+.p { font-weight: 700; } .c { color: var(--ink-soft); font-style: italic; } .t { color: var(--ink-soft); }
+.term { white-space: pre; background: var(--term-bg); color: var(--term-fg); border-radius: var(--radius-lg); padding: var(--space-5); font-family: var(--font-mono);
+  font-variation-settings: var(--font-mono-axes); font-size: var(--text-sm); line-height: 1.7; overflow-x: auto; }
+.term .e { color: var(--term-error); font-weight: 700; } .term .h { color: var(--term-help); } .term .d { color: var(--term-dim); }
+.term .b { color: var(--term-bold); font-weight: 700; } .term .o { color: var(--term-ok); } .term .w { color: var(--term-warn); }
+.dont { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: var(--space-4); }
+.dont figure { margin: 0; background: var(--surface); border-radius: var(--radius-lg); padding: var(--space-4); }
+.dont svg { width: 100%; height: 96px; }
+.dont figcaption { font-size: var(--text-sm); color: var(--ink-soft); margin-top: var(--space-2); }
+.dont figcaption b { color: var(--fail); }
+.diagram img { width: 100%; height: auto; border-radius: var(--radius-lg); }
+footer { padding: var(--space-7) 0; color: var(--ink-soft); font-size: var(--text-sm); border-top: 1px solid var(--rule); }
+@media (max-width: 820px) {
+  .hero, .two { grid-template-columns: 1fr; } .readings { grid-template-columns: 1fr; }
+  .type .row { grid-template-columns: 1fr; gap: var(--space-2); } header.top nav { display: none; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .swell path { animation: drift 14s ease-in-out infinite alternate; }
+  @keyframes drift { from { transform: translateX(-6px); } to { transform: translateX(6px); } }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <svg viewBox="3 1 193.06 62" role="img" aria-label="Nalu"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/><g transform="translate(76 15.04) scale(0.9877)"><path fill="currentColor" d="M0 29A15 15 0 0 1 30 29L23.5 29A8.5 8.5 0 0 0 6.5 29ZM0 29h6.5v11.75h-6.5zM0 40.75A3.25 3.25 0 1 1 6.5 40.75A3.25 3.25 0 1 1 0 40.75ZM23.5 29h6.5v11.75h-6.5zM23.5 40.75A3.25 3.25 0 1 1 30 40.75A3.25 3.25 0 1 1 23.5 40.75ZM37 29A15 15 0 1 1 67 29A15 15 0 1 1 37 29zM43.5 29A8.5 8.5 0 1 0 60.5 29A8.5 8.5 0 1 0 43.5 29zM60.5 29h6.5v11.75h-6.5zM60.5 40.75A3.25 3.25 0 1 1 67 40.75A3.25 3.25 0 1 1 60.5 40.75ZM74 3.25h6.5v37.5h-6.5zM74 3.25A3.25 3.25 0 1 1 80.5 3.25A3.25 3.25 0 1 1 74 3.25ZM74 40.75A3.25 3.25 0 1 1 80.5 40.75A3.25 3.25 0 1 1 74 40.75ZM117.5 29A15 15 0 0 1 87.5 29L94 29A8.5 8.5 0 0 0 111 29ZM87.5 17.25h6.5v11.75h-6.5zM87.5 17.25A3.25 3.25 0 1 1 94 17.25A3.25 3.25 0 1 1 87.5 17.25ZM111 17.25h6.5v23.5h-6.5zM111 17.25A3.25 3.25 0 1 1 117.5 17.25A3.25 3.25 0 1 1 111 17.25ZM111 40.75A3.25 3.25 0 1 1 117.5 40.75A3.25 3.25 0 1 1 111 40.75Z"/></g></svg>
+  <nav><a href="#mark">Mark</a><a href="#color">Color</a><a href="#type">Type</a><a href="#code">Code</a><a href="#art">Diagrams</a><a href="#files">Files</a></nav>
+</header>
+
+<div class="hero">
+  <div>
+    <div class="eyebrow">Brand &amp; design system</div>
+    <h1>One stroke.<br>Every shell.</h1>
+    <p class="lede"><i>Nalu</i> is Hawaiian for the wave that reaches the shore. The language takes one source to every shell; the mark is one stroke that reaches three meanings. Everything on this page is generated by <code>docs/brand/build.py</code> from one set of shapes and tokens.</p>
+  </div>
+  <div class="art">
+    <svg class="swell" viewBox="0 0 400 400" preserveAspectRatio="none" aria-hidden="true"><path d="M-20 40 C 80 26, 120 54, 210 40 S 340 26, 420 40"/><path d="M-20 66 C 80 52, 120 80, 210 66 S 340 52, 420 66"/><path d="M-20 92 C 80 78, 120 106, 210 92 S 340 78, 420 92"/><path d="M-20 118 C 80 104, 120 132, 210 118 S 340 104, 420 118"/><path d="M-20 144 C 80 130, 120 158, 210 144 S 340 130, 420 144"/><path d="M-20 170 C 80 156, 120 184, 210 170 S 340 156, 420 170"/><path d="M-20 196 C 80 182, 120 210, 210 196 S 340 182, 420 196"/><path d="M-20 222 C 80 208, 120 236, 210 222 S 340 208, 420 222"/><path d="M-20 248 C 80 234, 120 262, 210 248 S 340 234, 420 248"/><path d="M-20 274 C 80 260, 120 288, 210 274 S 340 260, 420 274"/><path d="M-20 300 C 80 286, 120 314, 210 300 S 340 286, 420 300"/><path d="M-20 326 C 80 312, 120 340, 210 326 S 340 312, 420 326"/><path d="M-20 352 C 80 338, 120 366, 210 352 S 340 338, 420 352"/><path d="M-20 378 C 80 364, 120 392, 210 378 S 340 364, 420 378"/></svg>
+    <svg class="big" viewBox="0 0 64 64" aria-hidden="true"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg>
+  </div>
+</div>
+
+<section id="mark">
+  <div class="eyebrow">The mark</div>
+  <h2>Three readings, one path</h2>
+  <p class="lede">A single filled path on a 64-unit grid. Read it as a letter, as water or as a shell, and it is still the same mark.</p>
+  <div class="readings">
+    <div class="card"><svg viewBox="0 0 64 64"><path class="lo" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/><path class="hl" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31Z"/></svg>
+      <h3>The n</h3><p>Stem and arch of a lowercase n: the first letter of the name and the shape that opens the wordmark.</p></div>
+    <div class="card"><svg viewBox="0 0 64 64"><path class="lo" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/><path class="hl" d="M32.5 5.5A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 32.5 14.5ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg>
+      <h3>The wave</h3><p>The crest pitches forward and curls into its own barrel: <i>nalu</i>, the wave that arrives.</p></div>
+    <div class="card"><svg viewBox="0 0 64 64"><path class="hl" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg>
+      <h3>The shell</h3><p>Turn after shrinking turn, a spiral shell: the thing every script runs in.</p></div>
+  </div>
+  <div class="two" style="margin-top:var(--space-7)">
+    <div><svg viewBox="-4 -4 72 72" class="construct" role="img" aria-label="Construction of the mark"><path d="M0 0V64M0 0H64" class="g g8"/><path d="M4 0V64M0 4H64" class="g"/><path d="M8 0V64M0 8H64" class="g g8"/><path d="M12 0V64M0 12H64" class="g"/><path d="M16 0V64M0 16H64" class="g g8"/><path d="M20 0V64M0 20H64" class="g"/><path d="M24 0V64M0 24H64" class="g g8"/><path d="M28 0V64M0 28H64" class="g"/><path d="M32 0V64M0 32H64" class="g g8"/><path d="M36 0V64M0 36H64" class="g"/><path d="M40 0V64M0 40H64" class="g g8"/><path d="M44 0V64M0 44H64" class="g"/><path d="M48 0V64M0 48H64" class="g g8"/><path d="M52 0V64M0 52H64" class="g"/><path d="M56 0V64M0 56H64" class="g g8"/><path d="M60 0V64M0 60H64" class="g"/><path d="M64 0V64M0 64H64" class="g g8"/><path class="m" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/><path class="cl" d="M11.5 54V31A21 21 0 0 1 53.5 31A14 14 0 0 1 25.5 31A8 8 0 0 1 41.5 31"/><circle class="c" cx="32.5" cy="31" r="0.9"/><circle class="c" cx="39.5" cy="31" r="0.9"/><circle class="c" cx="33.5" cy="31" r="0.9"/><text x="32.5" y="3.6" class="lb">R21</text><text x="45.5" y="51.6" class="lb">R14</text><text x="32.5" y="20.6" class="lb">R8</text><text x="3" y="44" class="lb">t9</text></svg></div>
+    <div>
+      <h3>Construction</h3>
+      <ul class="rules">
+        <li>Centerline arcs share the axis y = 31; radii 21 → 14 → 8, each turn smaller than the last.</li>
+        <li>Stroke 9 with round caps; the wordmark uses the same round terminals.</li>
+        <li>Bounding box 7–58 × 5.5–58.5: optically centered on the grid.</li>
+        <li>Filled shapes only, no strokes: it renders the same in any editor and in one color.</li>
+      </ul>
+      <h3 style="margin-top:var(--space-5)">Space and size</h3>
+      <ul class="rules"><li>Clear space: one stroke width (9 units) on every side, never less.</li>
+        <li>Minimum: 16 px for the mark, 96 px wide for the lockup. The mark needs no simplified favicon.</li></ul>
+      <div class="sizes">
+        <figure><span class="space"><svg width="48" height="48" viewBox="0 0 64 64"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg></span><figcaption>48 + clear space</figcaption></figure>
+        <figure><svg width="24" height="24" viewBox="0 0 64 64"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg><figcaption>24</figcaption></figure>
+        <figure><svg width="16" height="16" viewBox="0 0 64 64"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg><figcaption>16</figcaption></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Wordmark &amp; lockup</div>
+  <h2>n a l u, drawn from one ring</h2>
+  <div class="two">
+    <p class="lede">Geometric lowercase drawn for the brand, not set in a font: every letter comes from one ring (radius 15, stroke 6.5), x-height 30, ascender 44. The u is the n turned over: crest and trough. In the lockup the wordmark sits on the mark's foot at 82% of its height, two strokes away. Write <b>Nalu</b> in running text; <code>nalu</code> only for the command and code.</p>
+    <div class="card" style="display:grid;gap:var(--space-5)">
+      <svg viewBox="-3 -3 123.5 50" style="width:70%;height:auto;margin:0" aria-label="nalu wordmark"><path fill="currentColor" d="M0 29A15 15 0 0 1 30 29L23.5 29A8.5 8.5 0 0 0 6.5 29ZM0 29h6.5v11.75h-6.5zM0 40.75A3.25 3.25 0 1 1 6.5 40.75A3.25 3.25 0 1 1 0 40.75ZM23.5 29h6.5v11.75h-6.5zM23.5 40.75A3.25 3.25 0 1 1 30 40.75A3.25 3.25 0 1 1 23.5 40.75ZM37 29A15 15 0 1 1 67 29A15 15 0 1 1 37 29zM43.5 29A8.5 8.5 0 1 0 60.5 29A8.5 8.5 0 1 0 43.5 29zM60.5 29h6.5v11.75h-6.5zM60.5 40.75A3.25 3.25 0 1 1 67 40.75A3.25 3.25 0 1 1 60.5 40.75ZM74 3.25h6.5v37.5h-6.5zM74 3.25A3.25 3.25 0 1 1 80.5 3.25A3.25 3.25 0 1 1 74 3.25ZM74 40.75A3.25 3.25 0 1 1 80.5 40.75A3.25 3.25 0 1 1 74 40.75ZM117.5 29A15 15 0 0 1 87.5 29L94 29A8.5 8.5 0 0 0 111 29ZM87.5 17.25h6.5v11.75h-6.5zM87.5 17.25A3.25 3.25 0 1 1 94 17.25A3.25 3.25 0 1 1 87.5 17.25ZM111 17.25h6.5v23.5h-6.5zM111 17.25A3.25 3.25 0 1 1 117.5 17.25A3.25 3.25 0 1 1 111 17.25ZM111 40.75A3.25 3.25 0 1 1 117.5 40.75A3.25 3.25 0 1 1 111 40.75Z"/></svg>
+    </div>
+  </div>
+</section>
+
+<section id="color">
+  <div class="eyebrow">Color</div>
+  <h2>Lagoon over reef</h2>
+  <p class="lede">A Hawaiian shoreline at noon: cool whites instead of sand, deep ocean ink, and one signature color, the lagoon. Every lively color has exactly one job: reef and lagoon are you acting, lehua is something that failed (or that you chose to recover), limu is what worked, ʻōlena warns.</p>
+  <div class="palette"><figure class="sw"><div class="chip" style="background:#0b2b3d"></div><figcaption><b>moana</b><code>#0b2b3d</code><span>ink on light, the deep surfaces on dark</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#07161f"></div><figcaption><b>abyss</b><code>#07161f</code><span>the dark background and the terminal</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#e6f3f1"></div><figcaption><b>foam</b><code>#e6f3f1</code><span>ink on dark</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#f3f8f8"></div><figcaption><b>salt</b><code>#f3f8f8</code><span>light surfaces</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#0a7480"></div><figcaption><b>reef</b><code>#0a7480</code><span>the mark and actions on light</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#36d1c4"></div><figcaption><b>lagoon</b><code>#36d1c4</code><span>the mark and actions on dark; the signature color</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#c42c46"></div><figcaption><b>lehua</b><code>#c42c46</code><span>failure and recovery on light</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#ff8094"></div><figcaption><b>lehua-lt</b><code>#ff8094</code><span>failure and recovery on dark</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#1d7a4c"></div><figcaption><b>limu</b><code>#1d7a4c</code><span>success on light</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#74d7a0"></div><figcaption><b>limu-lt</b><code>#74d7a0</code><span>success on dark</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#8f5600"></div><figcaption><b>olena</b><code>#8f5600</code><span>warnings on light</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#f5be5b"></div><figcaption><b>olena-lt</b><code>#f5be5b</code><span>warnings on dark</span></figcaption></figure><figure class="sw"><div class="chip" style="background:#f1e9da"></div><figcaption><b>sand</b><code>#f1e9da</code><span>the shore, where generated scripts land (illustrations only)</span></figcaption></figure></div>
+  <h3 style="margin-top:var(--space-7)">Roles</h3>
+  <table><thead><tr><th>Role</th><th>Light</th><th>Dark</th><th>Job</th></tr></thead><tbody><tr><th>bg</th><td><i style="background:#ffffff"></i><code>#ffffff</code></td><td><i style="background:#07161f"></i><code>#07161f</code></td><td></td></tr><tr><th>surface</th><td><i style="background:#f3f8f8"></i><code>#f3f8f8</code></td><td><i style="background:#0c202b"></i><code>#0c202b</code></td><td></td></tr><tr><th>surface-2</th><td><i style="background:#e9f2f2"></i><code>#e9f2f2</code></td><td><i style="background:#11293a"></i><code>#11293a</code></td><td></td></tr><tr><th>code-bg</th><td><i style="background:#eef5f5"></i><code>#eef5f5</code></td><td><i style="background:#0a1c26"></i><code>#0a1c26</code></td><td></td></tr><tr><th>ink</th><td><i style="background:#0b2b3d"></i><code>#0b2b3d</code></td><td><i style="background:#e6f3f1"></i><code>#e6f3f1</code></td><td></td></tr><tr><th>ink-soft</th><td><i style="background:#4a6573"></i><code>#4a6573</code></td><td><i style="background:#93acb4"></i><code>#93acb4</code></td><td></td></tr><tr><th>rule</th><td><i style="background:#d6e4e6"></i><code>#d6e4e6</code></td><td><i style="background:#1d3746"></i><code>#1d3746</code></td><td></td></tr><tr><th>action</th><td><i style="background:#0a7480"></i><code>#0a7480</code></td><td><i style="background:#36d1c4"></i><code>#36d1c4</code></td><td>what you write and what you do: keywords, links, actions, {x}, $</td></tr><tr><th>fail</th><td><i style="background:#c42c46"></i><code>#c42c46</code></td><td><i style="background:#ff8094"></i><code>#ff8094</code></td><td>failure and recovery: catch, fail, ignore, try, errors</td></tr><tr><th>ok</th><td><i style="background:#1d7a4c"></i><code>#1d7a4c</code></td><td><i style="background:#74d7a0"></i><code>#74d7a0</code></td><td>it worked: passing tests, strings in code</td></tr><tr><th>warn</th><td><i style="background:#8f5600"></i><code>#8f5600</code></td><td><i style="background:#f5be5b"></i><code>#f5be5b</code></td><td>warnings</td></tr><tr><th>mark</th><td><i style="background:#0a7480"></i><code>#0a7480</code></td><td><i style="background:#36d1c4"></i><code>#36d1c4</code></td><td>the mark (always one color)</td></tr><tr><th>shore</th><td><i style="background:#f1e9da"></i><code>#f1e9da</code></td><td><i style="background:#1f2a26"></i><code>#1f2a26</code></td><td>where generated scripts land, in diagrams</td></tr><tr><th>shore-ink</th><td><i style="background:#5c4a2a"></i><code>#5c4a2a</code></td><td><i style="background:#e3d3b3"></i><code>#e3d3b3</code></td><td></td></tr></tbody></table>
+  <details class="contrast"><summary><b>Contrast:</b> all 59 text and mark pairs pass WCAG 2.x, or the build fails. Show the pairs</summary>
+  <table><thead><tr><th>Theme</th><th>Pair</th><th>Ratio</th><th>WCAG</th></tr></thead><tbody><tr class=""><td>light</td><td>ink / bg</td><td>14.71:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink-soft / bg</td><td>6.18:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>action / bg</td><td>5.49:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>fail / bg</td><td>5.53:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ok / bg</td><td>5.33:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>warn / bg</td><td>6.00:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink / surface</td><td>13.73:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink-soft / surface</td><td>5.76:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>action / surface</td><td>5.13:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>fail / surface</td><td>5.16:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ok / surface</td><td>4.97:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>warn / surface</td><td>5.60:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink / surface-2</td><td>12.93:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink-soft / surface-2</td><td>5.43:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>action / surface-2</td><td>4.83:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>fail / surface-2</td><td>4.86:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ok / surface-2</td><td>4.68:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>warn / surface-2</td><td>5.27:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink / code-bg</td><td>13.32:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ink-soft / code-bg</td><td>5.59:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>action / code-bg</td><td>4.97:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>fail / code-bg</td><td>5.01:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>ok / code-bg</td><td>4.83:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>warn / code-bg</td><td>5.43:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>light</td><td>mark / bg</td><td>5.49:1</td><td>✓ ≥ 3</td></tr><tr class=""><td>light</td><td>shore-ink / shore</td><td>7.05:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink / bg</td><td>16.14:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink-soft / bg</td><td>7.70:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>action / bg</td><td>9.68:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>fail / bg</td><td>7.67:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ok / bg</td><td>10.47:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>warn / bg</td><td>10.84:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink / surface</td><td>14.68:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink-soft / surface</td><td>7.00:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>action / surface</td><td>8.81:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>fail / surface</td><td>6.97:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ok / surface</td><td>9.52:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>warn / surface</td><td>9.86:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink / surface-2</td><td>13.16:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink-soft / surface-2</td><td>6.28:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>action / surface-2</td><td>7.90:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>fail / surface-2</td><td>6.25:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ok / surface-2</td><td>8.54:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>warn / surface-2</td><td>8.84:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink / code-bg</td><td>15.29:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ink-soft / code-bg</td><td>7.29:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>action / code-bg</td><td>9.17:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>fail / code-bg</td><td>7.26:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>ok / code-bg</td><td>9.92:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>warn / code-bg</td><td>10.27:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>dark</td><td>mark / bg</td><td>9.68:1</td><td>✓ ≥ 3</td></tr><tr class=""><td>dark</td><td>shore-ink / shore</td><td>10.04:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>fg / bg</td><td>15.45:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>dim / bg</td><td>6.28:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>bold / bg</td><td>18.00:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>error / bg</td><td>7.97:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>warn / bg</td><td>11.27:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>help / bg</td><td>10.07:1</td><td>✓ ≥ 4.5</td></tr><tr class=""><td>terminal</td><td>ok / bg</td><td>10.88:1</td><td>✓ ≥ 4.5</td></tr></tbody></table></details>
+</section>
+
+<section id="type" class="type">
+  <div class="eyebrow">Type</div>
+  <h2>Recursive, one family for prose and code</h2>
+  <p class="lede">Nalu is a language, so code is the product. Recursive spans proportional and monospaced in one superfamily: the brand, the prose and the code share letterforms. Its Casual axis gives the display a brushed warmth; the mono stays strictly linear.</p>
+  <div class="row"><div class="meta">Display<br><code>CASL 0.6 · 800</code></div><div class="disp">The wave that reaches every shore</div></div>
+  <div class="row"><div class="meta">Body<br><code>CASL 0 · 400</code></div><div class="body">Write a script once. Nalu checks it, then writes the Bash for Linux and macOS and the PowerShell for Windows, readable and with nothing to install.</div></div>
+  <div class="row"><div class="meta">Label<br><code>MONO 1 · 600 · +12%</code></div><div class="lab">Source · Compiler · Targets</div></div>
+  <div class="row"><div class="meta">Mono<br><code>MONO 1 · 400</code></div><div class="monos"><code>let tag = $(git describe --tags) catch "v0.0.0"</code></div></div>
+  <p style="color:var(--ink-soft);font-size:var(--text-sm);margin-top:var(--space-4)">Scale (px): xs 12 · sm 14 · md 16 · lg 19 · xl 23 · 2xl 28 · 3xl 36 · 4xl 48 · 5xl 68. Fallbacks: system UI sans and mono, which is also what the README diagrams use (GitHub shows SVGs without web fonts).</p>
+</section>
+
+<section id="code">
+  <div class="eyebrow">Code &amp; terminal</div>
+  <h2>Color follows meaning</h2>
+  <div class="two">
+    <pre class="code"><span class="k">fn</span> wait_healthy(url: <span class="t">str</span>) {
+    <span class="k">retry</span>(10, every: 5s) {
+        <span class="k">let</span> code = http.status(url, timeout: 5s)
+        <span class="k">if</span> code != 200 {
+            <span class="f">fail</span> <span class="s">"</span><span class="i">{</span>url<span class="i">}</span><span class="s"> answered </span><span class="i">{</span>code<span class="i">}</span><span class="s">"</span>
+        }
+    }
+    log.info(<span class="s">"</span><span class="i">{</span>url<span class="i">}</span><span class="s"> is up"</span>)
+}</pre>
+    <pre class="code"><span class="c">// Fail loud by default; `catch` decides.</span>
+<span class="k">let</span> user = env.get(<span class="s">"USER"</span>) <span class="f">catch</span> <span class="s">"unknown"</span>
+<span class="k">let</span> tmp = fs.temp_dir() <span class="f">catch</span> <span class="f">fail</span> <span class="s">"no temp dir"</span>
+<span class="x">$</span> <span class="p">open</span> <span class="i">{</span>report<span class="i">}</span> <span class="f">catch</span> <span class="f">ignore</span>
+<span class="x">$</span> <span class="p">git</span> pull <span class="f">catch</span> {
+    log.warn(<span class="s">"offline: </span><span class="i">{</span>err<span class="i">}</span><span class="s">"</span>)
+}</pre>
+  </div>
+  <table style="margin-top:var(--space-6)"><thead><tr><th>Role</th><th>Color · style</th><th>Covers</th></tr></thead><tbody><tr><th><span class="k">keyword</span></th><td>action · normal</td><td>let var fn return struct enum param if else for in while match break continue defer parallel retry native test self true false</td></tr><tr><th><span class="f">fail</span></th><td>fail · bold</td><td>catch fail ignore try</td></tr><tr><th><span class="s">string</span></th><td>ok · normal</td><td>&quot;…&quot; and &#x27;…&#x27;</td></tr><tr><th><span class="i">interp</span></th><td>action · normal</td><td>the braces of {x}, in strings and commands</td></tr><tr><th><span class="x">command</span></th><td>action · bold</td><td>the $ of $ cmd and $( )</td></tr><tr><th><span class="p">program</span></th><td>ink · bold</td><td>the program name after $</td></tr><tr><th><span class="c">comment</span></th><td>ink-soft · italic</td><td>// and ///</td></tr><tr><th><span class="t">type</span></th><td>ink-soft · normal</td><td>str int bool path duration secret and capitalized names</td></tr><tr><th><span class="">plain</span></th><td>ink · normal</td><td>the rest: names, numbers, operators</td></tr></tbody></table>
+  <div class="term" style="margin-top:var(--space-6)"><span class="e">error[E006]</span><span class="b">: `or` does not exist in Nalu</span>
+  <span class="d">--&gt;</span> deploy.nalu:12:17
+<span class="d">   |</span>
+<span class="d">12 |</span> let ok = a == 1 or a == 2
+<span class="d">   |</span>                 <span class="e">^^</span>
+<span class="d">   =</span> <span class="h">help: the logical or is `||`; to handle a failure use `catch`: `x catch default`</span>
+<span class="o">ok</span>: 44 cases · <span class="w">warning[W001]</span> · <span class="h">[dry-run] fs.copy</span></div>
+  <p style="color:var(--ink-soft);font-size:var(--text-sm)">Terminal palette (always dark): <span style="color:#d9ebe8">fg</span> <span style="color:#7f98a1">dim</span> <span style="color:#f2faf8">bold</span> <span style="color:#ff8094">error</span> <span style="color:#f5be5b">warn</span> <span style="color:#36d1c4">help</span> <span style="color:#74d7a0">ok</span> — respects <code>NO_COLOR</code>; color never carries meaning alone.</p>
+</section>
+
+<section id="art" class="diagram">
+  <div class="eyebrow">Diagrams</div>
+  <h2>Swell lines, not arrows</h2>
+  <div class="two">
+    <div><p class="lede">Diagrams are calm cards on the page background. Flow is drawn as a swell: a soft wave from source to destination, ending in a foam dot. Destinations that are generated scripts sit on the shore (sand). Labels are uppercase mono eyebrows; names are body text; code is mono.</p>
+    <ul class="rules"><li>One lively color per diagram for flow (reef / lagoon); lehua only for failure paths.</li>
+      <li>Every diagram exists in light and dark and in English and Portuguese, generated by <code>docs/art/build.py</code>.</li>
+      <li>System fonts only (GitHub renders SVGs without web fonts): leave room for wider fallbacks.</li></ul></div>
+    <picture><source media="(prefers-color-scheme: dark)" srcset="../art/en/flow-dark.svg"><img src="../art/en/flow-light.svg" alt="One source compiled to three native scripts"></picture>
+  </div>
+</section>
+
+<section>
+  <div class="eyebrow">Don't</div>
+  <h2>Keep the stroke whole</h2>
+  <div class="dont">
+    <figure><svg viewBox="0 0 64 64"><g transform="rotate(-14 32 32)"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></g></svg><figcaption><b>Don't</b> rotate or tilt it.</figcaption></figure>
+    <figure><svg viewBox="0 0 64 64" preserveAspectRatio="none"><g transform="translate(-10 0) scale(1.35 1)"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></g></svg><figcaption><b>Don't</b> stretch it.</figcaption></figure>
+    <figure><svg viewBox="0 0 64 64"><path fill="var(--fail)" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg><figcaption><b>Don't</b> paint it lehua: red means failure.</figcaption></figure>
+    <figure><svg viewBox="0 0 64 64"><path fill="none" stroke="var(--mark)" stroke-width="1.5" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg><figcaption><b>Don't</b> outline it.</figcaption></figure>
+    <figure><svg viewBox="0 0 64 64"><defs><linearGradient id="gr" x1="0" x2="1"><stop offset="0" stop-color="#36d1c4"/><stop offset="1" stop-color="#ff8094"/></linearGradient></defs><path fill="url(#gr)" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/></svg><figcaption><b>Don't</b> add gradients, shadows or glows.</figcaption></figure>
+    <figure><svg viewBox="0 0 64 64"><path class="mk" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A14.5 14.5 0 0 1 29 31L38 31A5.5 5.5 0 0 0 49 31ZM29 31A8 8 0 0 1 45 31L36 31A-1 -1 0 0 0 38 31ZM36 31A4.5 4.5 0 1 1 45 31A4.5 4.5 0 1 1 36 31Z"/></svg><figcaption><b>Don't</b> redraw the curl: the turns are fixed.</figcaption></figure>
+  </div>
+</section>
+
+<section id="files">
+  <div class="eyebrow">Files</div>
+  <h2>Assets and tokens</h2>
+  <table><thead><tr><th>File</th><th>Use</th></tr></thead><tbody><tr><td><a href="logo/nalu-lockup.svg"><code>logo/nalu-lockup.svg</code></a></td><td>Lockup, light backgrounds: the default for headers and READMEs</td></tr><tr><td><a href="logo/nalu-lockup-inverse.svg"><code>logo/nalu-lockup-inverse.svg</code></a></td><td>Lockup, dark backgrounds</td></tr><tr><td><a href="logo/nalu-lockup-mono.svg"><code>logo/nalu-lockup-mono.svg</code></a></td><td>Lockup, one color (currentColor)</td></tr><tr><td><a href="logo/nalu-mark.svg"><code>logo/nalu-mark.svg</code></a></td><td>Mark, light backgrounds</td></tr><tr><td><a href="logo/nalu-mark-inverse.svg"><code>logo/nalu-mark-inverse.svg</code></a></td><td>Mark, dark backgrounds</td></tr><tr><td><a href="logo/nalu-mark-mono.svg"><code>logo/nalu-mark-mono.svg</code></a></td><td>Mark, one color: stamps, editor icons, colored backgrounds</td></tr><tr><td><a href="logo/nalu-wordmark.svg"><code>logo/nalu-wordmark.svg</code></a></td><td>Wordmark alone, when the mark is already nearby</td></tr><tr><td><a href="logo/nalu-app-icon.svg"><code>logo/nalu-app-icon.svg</code></a></td><td>App icon, 512 × 512: installers, Homebrew, winget, avatars</td></tr><tr><td><a href="logo/nalu-favicon.svg"><code>logo/nalu-favicon.svg</code></a></td><td>Favicon: follows the system theme</td></tr>
+  <tr><td><a href="tokens/tokens.css"><code>tokens/tokens.css</code></a></td><td>CSS variables: light and dark roles, syntax, terminal, type, space, radius</td></tr>
+  <tr><td><a href="tokens/tokens.json"><code>tokens/tokens.json</code></a></td><td>The same tokens in W3C Design Tokens format, plus the ANSI map of the terminal</td></tr>
+  <tr><td><a href="../art/"><code>docs/art/</code></a></td><td>README banner, social card, badges and diagrams (light/dark, en/pt)</td></tr></tbody></table>
+</section>
+</div>
+<footer><div class="wrap">Nalu brand · generated by <code>docs/brand/build.py</code> · mark, wordmark and tokens are part of the project (MIT)</div></footer>
+</body>
+</html>

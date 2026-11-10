@@ -1,0 +1,7 @@
+// error: E031
+// `n` already takes every value: the arm below would never run.
+let status = 404
+match status {
+    n   => print("got {n}")
+    404 => print("not found")
+}

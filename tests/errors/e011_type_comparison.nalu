@@ -1,0 +1,5 @@
+// error: E011
+let n = 1
+if n == "1" {
+    print("igual")
+}

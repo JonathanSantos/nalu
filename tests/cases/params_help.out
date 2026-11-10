@@ -1,0 +1,11 @@
+usage: params_help --versao <str> --token <secret> [options] [args…]
+
+  --ambiente <dev|stage|prod>  ambiente de destino (default: dev)
+  --versao <str>               versão a publicar (required)
+  --pastas <[]str>             pastas para processar (default: docs)
+  --limpar-cache               apaga também o cache
+  --espera <duration>          espera entre tentativas (default: 30s)
+  --token <secret>             token do registry (required; or set NALU_TOKEN)
+  --dry-run                    show what would happen, without running commands or changing files
+  --verbose                    print each command before running it
+  -h, --help                   show this help

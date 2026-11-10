@@ -1,0 +1,89 @@
+// deploy.nalu: deploys services to an environment, with confirmation, parallelism and health checks.
+// Shows: param with an enum and a secret, if as an expression, a struct with methods and self, match on an
+//         enum, value | $ command, compound words in `$`, retry, parallel, automatic --dry-run.
+
+/// environment to deploy to
+param target: Target = Target.dev
+/// version to deploy, e.g. 1.4.0
+param version: str
+/// registry token
+param token: secret
+
+enum Target { dev, stage, prod }
+
+struct Service {
+    name: str
+    port: int
+
+    fn image() -> str {
+        return "registry.example.com/{self.name}:{version}"
+    }
+
+    fn health_url() -> str {
+        return "https://{host}:{self.port}/health"
+    }
+}
+
+// Inside match, the enum's cases are written without the type name.
+let host = match target {
+    dev   => "dev.example.com"
+    stage => "stage.example.com"
+    prod  => "example.com"
+}
+
+let replicas = if target == Target.prod { 6 } else { 1 }
+
+let services = [
+    Service { name: "api", port: 8080 },
+    Service { name: "worker", port: 9090 },
+    Service { name: "web", port: 3000 },
+]
+
+// Any command that fails makes the function fail, and the caller decides.
+fn publish(s: Service) {
+    $ docker build -t {s.image()} ./{s.name}
+    $ docker push {s.image()}
+    // `{s.name}={s.image()}` is ONE word, so it becomes ONE argument.
+    $ kubectl set image deployment/{s.name} {s.name}={s.image()} --namespace {target}
+    $ kubectl scale deployment/{s.name} --replicas {replicas} --namespace {target}
+}
+
+fn wait_healthy(s: Service) {
+    // Tries until it does not fail (at most 10 times, every 5s); then the last error propagates.
+    retry(10, every: 5s) {
+        let status = http.status(s.health_url(), timeout: 5s)
+        if status != 200 {
+            fail "{s.name} answered {status}"
+        }
+    }
+    log.info("{s.name} is healthy")
+}
+
+if target == Target.prod && !dry_run {
+    if !ui.confirm("Deploy version {version} to PRODUCTION?") {
+        print("cancelled.")
+        exit(0)
+    }
+}
+
+// The secret goes through stdin: it never shows up in arguments, logs or --verbose.
+token | $ docker login registry.example.com --username ci --password-stdin
+
+log.info("deploying {version} to {target} ({host}) with {replicas} replicas")
+
+// The services are independent: deploy them all at once.
+// If one fails, parallel waits for the others and the script ends with every error together.
+parallel for s in services {
+    publish(s)
+}
+
+// With --dry-run, the commands above were only shown; there is nothing to check.
+if dry_run {
+    exit(0)
+}
+
+for s in services {
+    wait_healthy(s)
+}
+
+log.info("version {version} is live at https://{host}")

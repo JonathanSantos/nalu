@@ -1,0 +1,78 @@
+// D25: on the linux target, lists of scalars are passed to functions by reference (`local -n`). The cases where
+// a reference would miss: recursion, equal names in different functions, forwarding, temporaries,
+// lambdas, parallel, methods and functions with defer. The output must be the same on all three targets.
+struct Caixa {
+    nome: str
+
+    fn rotulo(itens: []str) -> str {
+        return "{self.nome}:{itens.join(",")}"
+    }
+}
+
+fn soma(xs: []int) -> int {
+    var t = 0
+    for x in xs {
+        t += x
+    }
+    return t
+}
+
+// forwards its own reference
+fn soma_dupla(xs: []int) -> int {
+    return soma(xs) + soma(xs)
+}
+
+// a local list with the same name as the caller's list
+fn interna(nomes: []str) -> str {
+    let xs = ["interna"]
+    return "{nomes.join("+")}/{xs.join("")}"
+}
+
+fn externa() -> str {
+    let xs = ["a", "b"]
+    return interna(xs)
+}
+
+// recursive: receives a copy
+fn conta(xs: []int, n: int) -> int {
+    if n == 0 {
+        return xs.len()
+    }
+    var ys = xs
+    ys.push(n)
+    return conta(ys, n - 1)
+}
+
+fn primeiro_ou(xs: []str, p: str) -> str {
+    return xs.first() catch p
+}
+
+fn com_defer(xs: []str) -> int {
+    defer print("defer viu {xs.len()}")
+    return xs.len()
+}
+
+fn filtra(xs: []int, minimo: int) -> []int {
+    return xs.filter(x => x >= minimo)
+}
+
+fn em_paralelo(xs: []int) -> []int {
+    return parallel for x in xs {
+        x * 10
+    }
+}
+
+var grande: []int = []
+for i in 0..500 {
+    grande.push(i)
+}
+print(soma(grande), soma_dupla(grande), soma([1, 2, 3]))
+print(externa(), interna(["x"]))
+print(conta([1], 3), conta([], 0))
+print(primeiro_ou([], "vazia"), primeiro_ou(["z"], "vazia"))
+print(com_defer(["a", "b", "c"]))
+print(filtra(grande, 497).join(","), filtra([5, 1], 2).join(","))
+print(em_paralelo([1, 2, 3]).join(","))
+let c = Caixa { nome: "c1" }
+print(c.rotulo(["p", "q"]), c.rotulo("x,y".split(",")))
+print(soma(grande.slice(0, 3)), soma(args.map(a => a.len())))

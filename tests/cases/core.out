@@ -1,0 +1,15 @@
+nalu 2 true
+if ok
+dois
+faixa 0
+faixa 1
+faixa 2
+incl 1
+incl 2
+soma 16
+0=a
+1=b
+pouco
+B ou C
+
+fim false false

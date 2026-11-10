@@ -1,0 +1,2 @@
+// warning: W012
+$ rm -rf build catch ignore

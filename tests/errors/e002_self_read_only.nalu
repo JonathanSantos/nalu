@@ -1,0 +1,9 @@
+// error: E002
+struct C {
+    n: int
+    fn inc() {
+        self.n = self.n + 1
+    }
+}
+let c = C { n: 1 }
+c.inc()

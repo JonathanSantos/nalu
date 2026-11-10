@@ -1,0 +1,14 @@
+3 api,worker,db
+8080,9090,5432
+8080 5432
+0
+true false false
+api=8080
+worker=9090
+db=5432
+api,worker,db 1
+api,db,worker
+true 0
+3 4
+dois 1+2
+nenhum

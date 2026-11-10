@@ -1,0 +1,7 @@
+// error: E005
+let = 1
+let x = )
+foo(]
+let y = 2 2
+var
+print(1 2)

@@ -1,0 +1,4 @@
+// error: E002
+param vezes: int = 1
+vezes = 2
+print(vezes)

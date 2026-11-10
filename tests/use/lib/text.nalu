@@ -1,0 +1,12 @@
+// Text helpers, used by main.nalu and by services.nalu (loaded once).
+fn greet(who: str) -> str {
+    return "hello, {who}"
+}
+
+fn shout(s: str) -> str {
+    return "{s.upper()}!"
+}
+
+test "greet" {
+    assert greet("a") == "hello, a"
+}

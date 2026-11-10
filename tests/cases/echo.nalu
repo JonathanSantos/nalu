@@ -1,0 +1,13 @@
+// `$ echo` is portable: in PowerShell it becomes a one-line write, with the arguments joined by spaces.
+// The redirections > and >> write UTF-8 without a BOM, with \n, on all three targets.
+$ echo a b
+$ echo
+$ echo "x  y" ação
+let xs = ["1", "2"]
+$ echo itens: {xs}
+$ echo olá > f.txt
+$ echo mais >> f.txt
+let t = fs.read("f.txt")
+print(t.len(), fs.size("f.txt"), t.lines().join("|"))
+let c = $(echo capturado)
+print("[{c}]")

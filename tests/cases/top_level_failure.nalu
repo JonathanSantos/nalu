@@ -1,0 +1,4 @@
+// An unhandled failure at the top level ends the script with `error: …` on stderr and the error's code.
+print("antes")
+fail "boom", code: 42
+print("depois")

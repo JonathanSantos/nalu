@@ -1,0 +1,15 @@
+// mapa: 2.000 chaves distintas, 4.000 set/get
+func contar(palavras: string[]): Map<string, int> {
+    let m: Map<string, int> = {}
+    for p of palavras {
+        m.set(p, (m.get(p) ?? 0) + 1)
+    }
+    return m
+}
+
+let palavras: string[] = []
+for i of 0..4_000 {
+    palavras.push("p{{i % 2_000}}")
+}
+const m = contar(palavras)
+print("chaves={{m.length}} p7={{m.get("p7") ?? -1}} p1999={{m.get("p1999") ?? -1}} tem={{m.has("p2000")}}")

@@ -1,0 +1,7 @@
+// error: E032
+fn f(x: int) -> int {
+    if x > 0 {
+        return 1
+    }
+}
+print(f(1))

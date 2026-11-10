@@ -1,0 +1,5 @@
+[a] 1 a|t y true
+[bb] 2 bb|t y true
+[] 0 |t y false
+3
+30,10,20

@@ -1,0 +1,66 @@
+// installer.nalu: downloads a release of a tool from GitHub, checks its SHA-256, extracts it and installs it.
+// `nalu build` writes `installer.linux.sh`, `.macos.sh` and `.windows.ps1` (+ `.cmd`): the project's
+// `curl -fsSL … | bash` and `irm … | iex`, from one source.
+// Shows: http.get with headers and a token, json, http.download, hash.sha256_file, archive, fs.chmod,
+//         `os` as a compile-time constant (the other system's branch is not even generated), --dry-run.
+
+/// GitHub repository (owner/name)
+param repo: str = "owner/tool"
+/// version (tag); empty installs the latest
+param version: str = ""
+/// where to install
+param dest: path = "~/.local/bin"
+/// GitHub API (change it for GitHub Enterprise or a mirror)
+param api: str = "https://api.github.com"
+
+// The token is optional (only for private repositories or rate limits). As a `secret`, it never
+// shows up in process arguments, in the log or with --verbose.
+let token = secret(env.get("GITHUB_TOKEN") catch "")
+
+let route = if version == "" { "latest" } else { "tags/{version}" }
+let release = http.get("{api}/repos/{repo}/releases/{route}", headers: ["Accept: application/vnd.github+json"], bearer: token)
+let tag = json.get(release, "tag_name")
+
+// The package name follows the project's convention: tool-<system>-<architecture>.<ext>
+let ext = if os == "windows" { "zip" } else { "tar.gz" }
+let package = "tool-{os}-{sys.arch()}.{ext}"
+
+var url = ""
+var sum_url = ""
+for asset in json.get_list(release, "assets") {
+    let asset_name = json.get(asset, "name")
+    if asset_name == package {
+        url = json.get(asset, "browser_download_url")
+    }
+    if asset_name == "{package}.sha256" {
+        sum_url = json.get(asset, "browser_download_url")
+    }
+}
+if url == "" {
+    fail "release {tag} has no {package}"
+}
+
+let tmp = fs.temp_dir()
+defer fs.rm(tmp)
+log.info("downloading {package} ({tag})")
+http.download(url, tmp / package, bearer: token)
+
+// Checks the checksum when the release publishes one (sha256sum format: "<hash>  <file>").
+if sum_url != "" {
+    let expected = http.get(sum_url, bearer: token).trim().split(" ")[0]
+    if hash.sha256_file(tmp / package) != expected {
+        fail "the SHA-256 of {package} does not match: the download may be corrupted"
+    }
+}
+
+if os == "windows" {
+    archive.zip_extract(tmp / package, tmp / "x")
+} else {
+    archive.tar_extract(tmp / package, tmp / "x")
+}
+
+let exe = if os == "windows" { "tool.exe" } else { "tool" }
+fs.mkdir(dest)
+fs.copy(tmp / "x" / exe, dest / exe)
+fs.chmod(dest / exe, "+x")
+log.info("tool {tag} installed in {dest / exe}")

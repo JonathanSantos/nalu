@@ -1,0 +1,202 @@
+{
+  "name": "nalu-vscode",
+  "displayName": "Nalu",
+  "description": "Nalu (one source, Bash and PowerShell scripts): highlighting, live checks, types on hover, completion by type, signature help, go to definition, formatting and GitHub Copilot context, with every line that can fail marked with ⚡.",
+  "version": "1.1.0",
+  "publisher": "nalu",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Linters",
+    "Formatters",
+    "AI"
+  ],
+  "keywords": [
+    "nalu",
+    "bash",
+    "powershell",
+    "scripts"
+  ],
+  "main": "./extension.js",
+  "activationEvents": [
+    "onLanguage:nalu",
+    "onLanguageModelTool:nalu_check",
+    "onLanguageModelTool:nalu_docs",
+    "onLanguageModelTool:nalu_format"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "nalu",
+        "aliases": [
+          "Nalu",
+          "nalu"
+        ],
+        "extensions": [
+          ".nalu"
+        ],
+        "configuration": "./language-configuration.json",
+        "icon": {
+          "light": "./icons/nalu-light.svg",
+          "dark": "./icons/nalu-dark.svg"
+        }
+      }
+    ],
+    "grammars": [
+      {
+        "language": "nalu",
+        "scopeName": "source.nalu",
+        "path": "./syntaxes/nalu.tmLanguage.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "nalu.check",
+        "title": "Nalu: Check the file (nalu check)"
+      },
+      {
+        "command": "nalu.run",
+        "title": "Nalu: Run in the terminal (nalu run)"
+      },
+      {
+        "command": "nalu.build",
+        "title": "Nalu: Build the scripts (nalu build)"
+      },
+      {
+        "command": "nalu.addCopilotInstructions",
+        "title": "Nalu: Add Copilot instructions to this workspace"
+      }
+    ],
+    "configuration": {
+      "title": "Nalu",
+      "properties": {
+        "nalu.path": {
+          "type": "string",
+          "default": "nalu",
+          "scope": "machine-overridable",
+          "description": "Path to the `nalu` binary (by default, the one on PATH; the extension also tries `target/release/nalu` and `target/debug/nalu` in the open folder)."
+        },
+        "nalu.explain": {
+          "type": "boolean",
+          "default": true,
+          "description": "Mark with ⚡ at the end of the line every operation that can fail without `catch` (`nalu check --explain`); the hover says what happens if it fails."
+        },
+        "nalu.lint": {
+          "type": "string",
+          "enum": [
+            "onType",
+            "onSave",
+            "off"
+          ],
+          "enumDescriptions": [
+            "While typing (300 ms after you stop), on open and on save.",
+            "Only on open and on save.",
+            "Never (the `Nalu: Check the file` command still works)."
+          ],
+          "default": "onType",
+          "description": "When to run `nalu check` on the editor contents."
+        },
+        "nalu.copilotContext": {
+          "type": "boolean",
+          "default": true,
+          "description": "Give GitHub Copilot's inline suggestions context about Nalu from the compiler: the language rules, the names visible at the cursor and the relevant part of the standard library. Copilot decides whether to use it; usage statistics appear in the \"Nalu\" output panel."
+        }
+      }
+    },
+    "configurationDefaults": {
+      "[nalu]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 4
+      }
+    },
+    "languageModelTools": [
+      {
+        "name": "nalu_check",
+        "displayName": "Check Nalu code",
+        "toolReferenceName": "naluCheck",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(check)",
+        "tags": [
+          "nalu"
+        ],
+        "userDescription": "Compile-check Nalu code with the nalu compiler: errors, warnings and the lines that can fail.",
+        "modelDescription": "Checks Nalu (.nalu) source with the real Nalu compiler. Returns every error and warning with its code, line, column and a suggested fix, or 'No compile errors.' plus the lines that can fail without `catch`. Use it after writing or changing any Nalu code and fix every error before answering; Nalu is a new language, so do not assume syntax from Rust, Swift or JavaScript. Pass `code` (full source) or `path` (a .nalu file); with neither, the active .nalu editor is checked.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "The full Nalu source of a .nalu file."
+            },
+            "path": {
+              "type": "string",
+              "description": "Path of a .nalu file, absolute or relative to the workspace folder. Unsaved changes in the editor are used. With `code`, it only names the file (for messages and `embed`)."
+            }
+          }
+        }
+      },
+      {
+        "name": "nalu_docs",
+        "displayName": "Nalu documentation",
+        "toolReferenceName": "naluDocs",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(book)",
+        "tags": [
+          "nalu"
+        ],
+        "userDescription": "Look up Nalu modules, functions, types and keywords.",
+        "modelDescription": "Returns the exact Nalu documentation for names: modules (`fs`, `http`, `json`), functions (`fs.copy`, `env.get`), types and their methods (`str`, `list`, `map`, `path`, `err`), members (`str.split`, `path.parent`, `err.code`) and keywords (`catch`, `retry`, `parallel`, `defer`). Each entry has the signature, what it does, and whether it can fail or writes. With no names, returns the overview of the standard library. Use it before calling any standard library function you are not sure about; unknown names come back with a suggestion.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "names": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "Names to look up, such as [\"fs.copy\", \"str.split\", \"or\"]. Empty for the overview."
+            }
+          }
+        }
+      },
+      {
+        "name": "nalu_format",
+        "displayName": "Format Nalu code",
+        "toolReferenceName": "naluFormat",
+        "canBeReferencedInPrompt": true,
+        "icon": "$(list-flat)",
+        "tags": [
+          "nalu"
+        ],
+        "userDescription": "Format Nalu code in the house style (nalu fmt).",
+        "modelDescription": "Formats Nalu (.nalu) source with `nalu fmt` (indentation, spacing, blank lines; line breaks and comments are kept) and returns the formatted code, or the syntax errors if it does not parse. It does not write files. Pass `code` or `path`.",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "code": {
+              "type": "string",
+              "description": "The full Nalu source of a .nalu file."
+            },
+            "path": {
+              "type": "string",
+              "description": "Path of a .nalu file, absolute or relative to the workspace folder. Unsaved changes in the editor are used. With `code`, it only names the file (for messages and `embed`)."
+            }
+          }
+        }
+      }
+    ],
+    "chatInstructions": [
+      {
+        "path": "./copilot/nalu.instructions.md"
+      }
+    ]
+  },
+  "icon": "icon.png",
+  "galleryBanner": {
+    "color": "#07161f",
+    "theme": "dark"
+  }
+}

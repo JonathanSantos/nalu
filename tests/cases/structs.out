@@ -1,0 +1,14 @@
+api 8080 1 0
+http://localhost:8080
+3 1 api
+1 8080
+api 9090 db+cache
+3 web 2
+api:8080
+web:3000
+worker:9090
+api,web,worker
+9090
+web,api,worker
+0 8080
+http://localhost:8080 2

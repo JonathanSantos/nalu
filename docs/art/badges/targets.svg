@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 236 26" width="236" height="26" role="img" aria-labelledby="t d">
+<title id="t">targets: Bash · PowerShell</title>
+<desc id="d"></desc>
+<rect x="0" y="0" width="236" height="26" rx="13" fill="#0b2b3d"/>
+<path transform="translate(10 6) scale(0.22)" fill="#36d1c4" d="M7 31h9v23h-9zM7 54A4.5 4.5 0 1 1 16 54A4.5 4.5 0 1 1 7 54ZM7 31A25.5 25.5 0 0 1 58 31L49 31A16.5 16.5 0 0 0 16 31ZM58 31A18.5 18.5 0 0 1 21 31L30 31A9.5 9.5 0 0 0 49 31ZM21 31A12.5 12.5 0 0 1 46 31L37 31A3.5 3.5 0 0 0 30 31ZM37 31A4.5 4.5 0 1 1 46 31A4.5 4.5 0 1 1 37 31Z"/>
+<text x="30" y="17.5" font-size="12" fill="#a9c3c9" font-family="ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', monospace">targets</text>
+<rect x="95.24" y="2" width="138.59" height="22" rx="11" fill="#07161f"/>
+<text x="164.53" y="17.5" font-size="12" fill="#36d1c4" font-family="Recursive, ui-sans-serif, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Helvetica, Arial, sans-serif" font-weight="700" text-anchor="middle">Bash · PowerShell</text>
+</svg>

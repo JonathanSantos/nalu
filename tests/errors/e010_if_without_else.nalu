@@ -1,0 +1,4 @@
+// error: E010
+let a = 1
+let x = if a > 0 { "sim" }
+print(x)

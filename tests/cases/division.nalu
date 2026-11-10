@@ -1,0 +1,13 @@
+// Dividing by zero (or taking the remainder) fails on all three targets, with the same message.
+fn div(a: int, b: int) -> int {
+    return a / b
+}
+let zero = "0".to_int()
+print(div(7, 2), 7 % 3, -7 / 2)
+print(div(7, zero) catch -1)
+print(7 % zero catch -2)
+var x = 9
+x /= 3
+print(x, 90s / 30s)
+print(div(1, zero))
+print("never")

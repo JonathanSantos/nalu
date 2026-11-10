@@ -1,0 +1,3 @@
+// error: E010
+let t = fs.read("a") catch ignore
+print(t)

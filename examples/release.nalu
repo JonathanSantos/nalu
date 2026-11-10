@@ -1,0 +1,74 @@
+// release.nalu: works out the next version, updates the CHANGELOG and creates the git tag.
+// Shows: $( ) to capture output, a pipe, `catch` with a default, structs with methods and ..self,
+//         an exhaustive match on an enum returning structs, if as an expression, Unix-only code.
+
+/// which part of the version to bump
+param part: Part = Part.patch
+
+enum Part { major, minor, patch }
+
+struct Version {
+    major: int
+    minor: int
+    patch: int
+
+    fn text() -> str {
+        return "{self.major}.{self.minor}.{self.patch}"
+    }
+
+    // Structs are values: next() returns a new version and leaves self as it was.
+    fn next(which: Part) -> Version {
+        return match which {
+            major => Version { major: self.major + 1, minor: 0, patch: 0 }
+            minor => Version { ..self, minor: self.minor + 1, patch: 0 }
+            patch => Version { ..self, patch: self.patch + 1 }
+        }
+    }
+}
+
+fn parse_version(text: str) -> Version {
+    let parts = text.trim().strip_prefix("v").split(".")
+    if parts.len() != 3 {
+        fail "invalid version: '{text}' (expected X.Y.Z)"
+    }
+    // to_int() fails on anything that is not a number; the failure goes to the caller.
+    return { major: parts[0].to_int(), minor: parts[1].to_int(), patch: parts[2].to_int() }
+}
+
+// No release with uncommitted changes.
+let pending = $(git status --porcelain)
+if pending != "" {
+    fail "there are uncommitted changes:\n{pending}"
+}
+
+// With no tag yet, `git describe` fails: `catch` uses "" instead.
+let last_tag = $(git describe --tags --abbrev=0) catch ""
+
+let current = if last_tag == "" { Version { major: 0, minor: 0, patch: 0 } } else { parse_version(last_tag) }
+let range = if last_tag == "" { "HEAD" } else { "{last_tag}..HEAD" }
+
+let new = current.next(part)
+let changes = $(git log {range} --pretty=format:"- %s")
+
+if changes == "" {
+    fail "no commits since {last_tag}"
+}
+
+log.info("{current.text()} → {new.text()}")
+
+// `head` does not exist on Windows: this part only goes into the Linux and macOS scripts.
+if os != "windows" {
+    $ git log --oneline {range} | head -n 20 catch ignore
+}
+
+let changelog: path = "CHANGELOG.md"
+let previous = fs.read(changelog) catch ""
+fs.write(changelog, "## {new.text()}\n\n{changes}\n\n{previous}")
+
+try {
+    $ git add {changelog}
+    $ git commit -m "release {new.text()}"
+    $ git tag v{new.text()}
+} catch fail "could not create the tag: {err}"
+
+print("done! publish it with: git push --follow-tags")

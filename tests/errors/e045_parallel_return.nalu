@@ -1,0 +1,8 @@
+// error: E045
+fn f(xs: []int) -> int {
+    parallel for x in xs {
+        return x
+    }
+    return 0
+}
+print(f([1]))

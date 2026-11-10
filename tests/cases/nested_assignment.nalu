@@ -1,0 +1,55 @@
+// Assigning inside nested values (D34): `grid[i][j] = v`, `xs[i].f = v`, `m[k][0] = v`, `rows[i].push(x)`;
+// nested fields in lists of structs and `parallel for` over a `[][]T`.
+struct Svc {
+    name: str
+    tags: []str
+    ports: map[str]int
+}
+var grid: [][]int = [[0, 0], [0, 0]]
+grid[1][0] = 7
+grid[0][1] += 5
+print(grid[0].join(","), grid[1].join(","))
+var svcs = [Svc { name: "a", tags: ["x"], ports: { "http": 80 } }]
+svcs[0].name = "api"
+svcs[0].tags[0] = "web"
+svcs[0].ports["http"] = 8080
+print(svcs[0].name, svcs[0].tags.join(","), svcs[0].ports["http"])
+var s = Svc { name: "b", tags: ["p", "q"], ports: {} }
+s.tags[1] = "Q"
+print(s.tags.join(","))
+var groups: map[str][]str = { "go": ["a.go"] }
+groups["go"][0] = "main.go"
+print(groups["go"][0])
+fn pick() -> int {
+    return 1
+}
+grid[pick()][1] = 9
+print(grid[1].join(","))
+var g: map[str][]str = { "a": [] }
+g["a"].push("y")
+var rows: [][]int = [[1]]
+rows[0].push(2)
+rows[0].push(3)
+rows[0].pop()
+print(g["a"].len(), rows[0].join(","))
+struct Job {
+    name: str
+    steps: [][]str
+    env: map[str][]str
+}
+
+let jobs = [
+    Job { name: "build", steps: [["make"], ["make", "test"]], env: { "PATH": ["/bin", "/usr/bin"] } },
+    Job { name: "lint", steps: [], env: {} },
+]
+for j in jobs {
+    print(j.name, j.steps.len(), j.env.len())
+    for s in j.steps {
+        print("  {s.join(" ")}")
+    }
+}
+print(jobs[0].env["PATH"].join(":"))
+let counts = parallel for row in [["a", "b"], ["c"]] {
+    row.len()
+}
+print(counts.join(","))

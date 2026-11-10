@@ -1,0 +1,31 @@
+// str methods, interpolation, {{ }}, \{ \}, 'raw', """, fmt, concatenation.
+let s = "  Olá, Mundo  "
+print("[{s.trim()}]")
+print("[{s.trim_start()}]")
+print("[{s.trim_end()}]")
+let t = s.trim()
+print(t.upper(), t.lower())
+print(t.contains("Mun"), t.starts_with("Olá"), t.ends_with("x"))
+print(t.strip_prefix("Olá, "), t.strip_suffix("do"), t.strip_prefix("zz"))
+print(t.index_of("M"), t.index_of("zz"))
+print(t.slice(5), t.slice(0, 3))
+let partes = "a,,b".split(",")
+print(partes.len(), partes.join("|"))
+let ls = "x\ny\r\nz\n".lines()
+print(ls.len(), ls.join("+"))
+print("aXbXc".replace("X", "-"), "aXbXc".replace_first("X", "-"))
+let vazio = "-".repeat(0)
+print("ab".repeat(3), "[{vazio}]")
+print("7".pad_left(3, "0"), "ab".pad_right(4, ".") + "|", "x".pad_left(3) + "|")
+print("abc".chars().join(" "), "" == "", "a" == "")
+let nome = "Ana"
+print("olá, {nome}! {{literal}} \{tambem\}")
+print('cru {nome} \n $HOME')
+print("aspas \"duplas\" e barra \\ e tab[\t]")
+let multi = """
+    linha 1
+      linha 2: {nome}"""
+print(multi)
+print(fmt("{} está na porta {}", "api", 8080))
+print("porta " + 8080, "x" + true)
+print("{nome.len()} letras, {t.split(",").len()} partes")

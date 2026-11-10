@@ -1,0 +1,11 @@
+api 80 tcp http://api:80
+8080 web,public 3
+http://api:8080 tcp
+8081
+api 8081 3 x
+worker 8081 9 x
+api 8081
+8081,8081
+9
+high 8081
+worker 8081

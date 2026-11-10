@@ -1,0 +1,12 @@
+// time.*: format with the subset, now, since, sleep, hour.
+print(time.format("%Y-%m", 1700000000))
+print(time.format("%%|%y|%Y", 1700000000))
+let t0 = time.now()
+let m0 = time.now_ms()
+time.sleep(20ms)
+print(time.since(t0) < 5s, time.since_ms(m0) >= 0ms, m0 > 1600000000000, t0 > 1600000000)
+let h = time.hour(1700000000)
+print(h >= 0 && h < 24)
+print(time.format().len(), time.format("%H:%M:%S").len())
+let agora = time.hour()
+print(agora >= 0 && agora <= 23)

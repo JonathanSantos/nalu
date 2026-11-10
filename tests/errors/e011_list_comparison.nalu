@@ -1,0 +1,4 @@
+// error: E011
+let a = [1]
+let b = [1]
+print(a == b)

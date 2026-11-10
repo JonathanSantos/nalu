@@ -1,0 +1,10 @@
+// laço: 20.000 iterações com acumulador e interpolação
+let total = 0
+let texto = ""
+for i of 0..20_000 {
+    total += i % 7
+    if i % 5_000 == 0 {
+        texto = "{{texto}}[{{i}}]"
+    }
+}
+print("total={{total}} texto={{texto}}")

@@ -1,0 +1,4 @@
+// error: E054
+// `.*` can also read `=`: Bash and PowerShell could split the text differently.
+let g = regex.groups("a=b=c", '^(.*)=(.*)$')
+print(g.join(","))

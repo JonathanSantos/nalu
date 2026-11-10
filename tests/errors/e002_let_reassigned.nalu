@@ -1,0 +1,4 @@
+// error: E002
+let tentativas = 0
+tentativas += 1
+print(tentativas)

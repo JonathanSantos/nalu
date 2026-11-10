@@ -1,0 +1,24 @@
+// A mutating method on a nested value as the value of `let`/`var`, `=` and `return`, with and without `catch`.
+var rows: [][]int = [[1, 2, 3], [4]]
+let x = rows[0].pop()
+var y = rows[1].pop() catch -1
+let z = rows[1].pop() catch -1
+print(x, y, z, rows[0].join(","), rows[1].len())
+var groups: map[str][]str = { "a": ["p", "q"] }
+var last = ""
+last = groups["a"].pop()
+print(last, groups["a"].join(","))
+
+fn take(rs: [][]int) -> int {
+    var copy = rs
+    return copy[0].pop()
+}
+
+print(take([[7, 8]]))
+struct Box {
+    items: []str
+}
+
+var boxes = [Box { items: ["a", "b"] }]
+let b = boxes[0].items.pop()
+print(b, boxes[0].items.len())

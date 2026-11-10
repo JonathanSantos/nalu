@@ -1,0 +1,5 @@
+// error: E040
+// `catch` between conditions: the hint must suggest `||`.
+let a = 1
+let ok = a == 1 catch a == 2
+print(ok)

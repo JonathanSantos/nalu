@@ -1,0 +1,9 @@
+// calc.nalu: funções testadas por calc_test.nalu. As instruções de topo não rodam em `nalu test`.
+fn dividir(a: int, b: int) -> int {
+    if b == 0 {
+        fail "divisão por zero"
+    }
+    return a / b
+}
+
+print("isto não roda em nalu test")

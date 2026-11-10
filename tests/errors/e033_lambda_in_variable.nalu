@@ -1,0 +1,2 @@
+// error: E033
+let dobro = x => x * 2

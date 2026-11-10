@@ -1,0 +1,7 @@
+// error: E031
+enum Ambiente { dev, stage, prod }
+let a = Ambiente.dev
+match a {
+    dev  => print("d")
+    prod => print("p")
+}

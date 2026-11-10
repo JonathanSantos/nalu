@@ -1,0 +1,2 @@
+// warning: W010
+$ winget install Git.Git

@@ -1,0 +1,39 @@
+// Regression for the Stela bug ([][]string with one item flattened in PowerShell): one-item lists that pass
+// through functions, split, list fields of structs and lists of structs must never be unwrapped.
+struct Caixa {
+    itens: []str
+}
+
+fn um() -> []str {
+    return ["só"]
+}
+
+fn caixas() -> []Caixa {
+    return [Caixa { itens: ["a"] }]
+}
+
+fn devolve(xs: []str) -> []str {
+    return xs
+}
+
+let a = um()
+print(a.len(), a[0])
+let b = "x".split(",")
+print(b.len(), b[0])
+let c = Caixa { itens: ["único"] }
+print(c.itens.len(), c.itens[0])
+let cs = [c]
+print(cs.len(), cs[0].itens.len())
+let k = caixas()
+print(k.len(), k[0].itens.join(","))
+let vazio: []str = []
+print(devolve(vazio).len(), devolve(["z"]).len(), devolve(["z"])[0])
+for x in um() {
+    print("item {x}")
+}
+let um_num = [5]
+print(um_num.sum(), um_num.map(n => n + 1).join(","), um_num.filter(n => n > 1).len())
+var acumula: []str = []
+acumula.push("p")
+let copia = acumula
+print(copia.len(), acumula.slice(0, 1).len(), acumula.sort().len(), acumula.reverse()[0])

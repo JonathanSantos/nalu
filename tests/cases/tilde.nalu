@@ -1,0 +1,14 @@
+// `~` in a command: unquoted it is the user's home folder; quoted it is text; a `path` with `~` is also expanded.
+let home = dirs.home()
+let a = $(echo ~/x)
+print(a == "{home}/x")
+let b = $(echo '~/q' "~/dq")
+print(b)
+let d: path = "~/b"
+let c = $(echo {d})
+print(c == "{home / "b"}")
+let e = $(echo ~)
+print(e == "{home}")
+let ps: []path = ["~/l", "m", "~x"]
+let f = $(echo {ps})
+print(f == "{home}/l m ~x")

@@ -1,0 +1,4 @@
+// error: E053
+let nome = "a.txt"
+let t = embed(nome)
+print(t)

@@ -1,0 +1,3 @@
+// error: E042
+let arquivos = ["a", "b"]
+$ tar -czf saida.tgz --files={arquivos}

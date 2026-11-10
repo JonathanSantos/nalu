@@ -1,0 +1,24 @@
+// Types used by main.nalu; it uses text.nalu in turn.
+use "text.nalu"
+
+enum Stage { dev, prod }
+
+struct Service {
+    name: str
+    port: int
+
+    fn url() -> str {
+        return "http://localhost:{self.port}"
+    }
+
+    fn label() -> str {
+        return shout(self.name)
+    }
+}
+
+fn stage_name(s: Stage) -> str {
+    return match s {
+        dev  => "development"
+        prod => "production"
+    }
+}

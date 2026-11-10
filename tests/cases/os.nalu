@@ -1,0 +1,12 @@
+// `os` is a compile-time value: the branch for the other system disappears.
+match os {
+    "linux"   => print("sou linux")
+    "macos"   => print("sou macos")
+    "windows" => print("sou windows")
+}
+print(os)
+if os == "windows" {
+    print("win")
+} else {
+    print("unix")
+}

@@ -1,0 +1,75 @@
+// `match` with guards (`n if …`), bindings (`n =>`) and struct patterns, tested in order (D33).
+enum Stage { dev, stage, prod }
+
+struct Service {
+    name: str
+    port: int
+    stage: Stage
+    tags: []str
+}
+
+fn describe(status: int) -> str {
+    return match status {
+        200..=299     => "ok"
+        404           => "not found"
+        n if n >= 500 => "server error {n}"
+        n             => "other {n}"
+    }
+}
+
+fn kind(s: Service) -> str {
+    return match s {
+        Service { port: 443 }                        => "https {s.name}"
+        Service { stage: prod, port: p } if p < 1024 => "privileged prod on {p}"
+        Service { stage: prod, name: n }             => "prod {n}"
+        Service { tags: t } if t.contains("db")      => "database {s.name}"
+        _                                            => "other"
+    }
+}
+
+for c in [200, 404, 503, 302] {
+    print(describe(c))
+}
+let svcs = [
+    Service { name: "web", port: 443, stage: Stage.dev, tags: [] },
+    Service { name: "api", port: 80, stage: Stage.prod, tags: [] },
+    Service { name: "worker", port: 9000, stage: Stage.prod, tags: [] },
+    Service { name: "pg", port: 5432, stage: Stage.dev, tags: ["db"] },
+    Service { name: "x", port: 1, stage: Stage.stage, tags: [] },
+]
+for s in svcs {
+    print(kind(s))
+}
+let word = "Hello"
+match word.lower() {
+    "hi" | "hello"   => print("greeting")
+    w if w.len() > 3 => print("long word {w}")
+    _                => print("short")
+}
+let st = Stage.stage
+let label = match st {
+    dev                   => "d"
+    _ if st == Stage.prod => "p"
+    _                     => "other"
+}
+print(label)
+var count = 0
+match count {
+    0 => {
+        count = 10
+        print("was zero")
+    }
+    n => print("n={n}")
+}
+print(count)
+let limit = 3
+let xs = [1, 5]
+let ok = true
+for n in [1, 4, 9] {
+    match n {
+        k if k > limit           => print("big {k}")
+        k if xs.any(x => x == k) => print("listed {k}")
+        _ if (ok)                => print("ok {n}")
+        _                        => print("never")
+    }
+}

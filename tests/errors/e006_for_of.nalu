@@ -1,0 +1,5 @@
+// error: E006
+let xs = [1, 2]
+for x of xs {
+    print(x)
+}

@@ -1,0 +1,4 @@
+// error: E054
+// The pattern must be written in the call, so the compiler can check and translate it.
+let p = '\d+'
+print(regex.find("a1", p))

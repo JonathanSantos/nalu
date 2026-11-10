@@ -1,0 +1,4 @@
+// Invalid int and enum: code 2.
+/// vezes
+param vezes: int = 1
+print(vezes)

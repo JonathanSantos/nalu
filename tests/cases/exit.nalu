@@ -1,0 +1,5 @@
+// exit(n) runs the defers; codes above 255 wrap around (% 256) on both targets.
+defer print("defer roda")
+print("antes")
+exit(300)
+print("nunca")

@@ -1,0 +1,6 @@
+// log.* goes to stderr with a prefix; debug only with --verbose.
+log.info("a", 1, true)
+log.warn("b")
+log.error("c")
+log.debug("escondido")
+print("ok")

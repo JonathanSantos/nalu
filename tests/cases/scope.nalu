@@ -1,0 +1,38 @@
+// Scope: shadowing inside a function, globals read and written (var) in functions, blocks.
+let x = 1
+var g = "global"
+
+fn f() -> int {
+    let x = 2
+    g = "mudado"
+    return x
+}
+
+fn le() -> int {
+    return x + 10
+}
+
+fn local_com_mesmo_nome(g: str) -> str {
+    return "param {g}"
+}
+
+print(f(), x, g)
+print(le())
+print(local_com_mesmo_nome("p"), g)
+if true {
+    let y = 5
+    print(y)
+}
+let y = 6
+print(y)
+for i in 0..2 {
+    let z = i * 2
+    print(z)
+}
+var acumulado: []str = []
+fn acumula(s: str) {
+    acumulado.push(s)
+}
+acumula("a")
+acumula("b")
+print(acumulado.join(""))

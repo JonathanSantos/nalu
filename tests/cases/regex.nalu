@@ -1,0 +1,29 @@
+// regex and encoding: the same matches, groups and Base64 on every target (D32).
+let v = "release v1.24.3 on 2026-11-09, next v2.0.0"
+print(regex.test(v, '^release'), regex.test(v, '\d{5}'))
+print(regex.find(v, 'v\d+\.\d+\.\d+'))
+print(regex.find_all(v, '\d+').join(","))
+let g = regex.groups(v, 'v(\d+)\.(\d+)\.(\d+)')
+print(g.join("|"), g.len())
+print(regex.replace(v, 'v\d+', "V$1"))
+print(regex.replace("a.b.c", '\.', "/"))
+print(regex.replace("x=1", '^([^=]*)=', "key="))
+print(regex.replace("abcabc", 'c$', "!"))
+print(regex.find_all("aXbXc", '^[a-z]').join(","))
+print(regex.test("é", '^.$'), regex.test("👍", '^.$'), regex.find("ação!", '[^!]+'))
+print(regex.test("YES", '(?i)^yes$'))
+let opt = regex.groups("k=", '^(\w+)=(\d+)?$')
+print("[{opt[0]}][{opt[1]}]")
+print(regex.find("nada", '\d') catch "no digits")
+print(regex.find("a\nb", 'a.b').len())
+let b = encoding.base64_encode("olá, mundo 👍")
+print(b)
+print(encoding.base64_decode(b))
+print(encoding.base64_decode("aGk"), encoding.base64_decode("aG k=\n"))
+for x in ["_-8", "!!", "AAE=", "/w=="] {
+    let d = encoding.base64_decode(x) catch {
+        "bad: {err}"
+    }
+    print(d)
+}
+print(encoding.base64_encode("") == "", encoding.base64_decode("") == "")

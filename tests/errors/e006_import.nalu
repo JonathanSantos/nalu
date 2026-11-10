@@ -1,0 +1,3 @@
+// error: E006
+import fs
+print(1)

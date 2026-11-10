@@ -1,0 +1,5 @@
+// error: E012
+fn saudar(nome: str, vezes: int = 1) -> str {
+    return nome.repeat(vezes)
+}
+print(saudar(vezes: 2))

@@ -1,0 +1,6 @@
+ok      divide inteiros
+ok      zero falha
+FAILED  falha de propósito: assert failed: dividir(9, 3) == 4
+FAILED  erro não tratado: divisão por zero
+ok      vários asserts
+5 test(s), 2 failure(s)

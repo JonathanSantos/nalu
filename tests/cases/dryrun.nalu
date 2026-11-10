@@ -1,0 +1,16 @@
+// --dry-run: commands and writes are shown, not executed; captures and reads run;
+// writes inside this run's fs.temp_dir() really happen.
+print(dry_run)
+let tmp = fs.temp_dir()
+fs.write(tmp / "a.txt", "dentro")
+print(fs.read(tmp / "a.txt"))
+fs.write("fora.txt", "y")
+print(fs.exists("fora.txt"))
+fs.mkdir("pasta-nova")
+print(fs.exists("pasta-nova"))
+$ touch criado.txt
+print(fs.exists("criado.txt"))
+let c = $(echo capturado)
+print(c)
+fs.rm(tmp)
+print(fs.exists(tmp))

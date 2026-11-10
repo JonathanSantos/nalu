@@ -1,0 +1,38 @@
+// A list index out of range fails like any fallible operation (D13): `catch`, function, `try`,
+// `parallel`, lambda, struct, assignment; `&&` and `while` only evaluate the index when they need to.
+struct S {
+    nome: str
+}
+
+fn pega(xs: []str, i: int) -> str {
+    return xs[i]
+}
+
+let xs = ["a", "b"]
+print("1:", xs[1], xs[xs.len() - 1])
+print("2:", xs[5] catch "padrão")
+print("3:", pega(xs, -1) catch "negativo")
+var i = 0
+while i < xs.len() && xs[i] != "zz" {
+    i += 1
+}
+print("4: parou em", i)
+print("5:", i < xs.len() && xs[i] == "a")
+let cs = [S { nome: "x" }]
+print("6:", cs[0].nome, cs[3].nome catch "sem struct")
+let partes = ["k=v", "sem"].map(s => s.split("=")[1] catch "?")
+print("7:", partes.join(","))
+var ys = ["p", "q"]
+ys[1] = "Q"
+print("8:", ys.join(","))
+try {
+    ys[2] = "R"
+} catch {
+    print("9: pegou: {err}")
+}
+let rs = parallel for k in [0, 1, 7] {
+    xs[k] catch "-"
+}
+print("10:", rs.join(","))
+print("11:", pega(xs, 9))
+print("nunca")

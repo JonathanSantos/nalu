@@ -1,0 +1,3 @@
+// error: E005
+let s = "abc
+print(s)

@@ -1,0 +1,6 @@
+// A file with code at the top level can't be used.
+fn f() -> int {
+    return 1
+}
+
+print(f())

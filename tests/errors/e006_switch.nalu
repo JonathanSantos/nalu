@@ -1,0 +1,4 @@
+// error: E006
+let x = 1
+switch x {
+}

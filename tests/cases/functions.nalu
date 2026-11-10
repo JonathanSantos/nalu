@@ -1,0 +1,51 @@
+// Functions: defaults, named arguments, recursion, lists/structs/maps by value, var globals, returning one item.
+fn saudar(nome: str, vezes: int = 1, fim: str = "!") -> str {
+    return "olá, {nome}" + fim.repeat(vezes)
+}
+
+fn fat(n: int) -> int {
+    if n <= 1 {
+        return 1
+    }
+    return n * fat(n - 1)
+}
+
+var contador = 0
+fn contar() {
+    contador += 1
+}
+
+fn adiciona(xs: []int) -> []int {
+    var c = xs
+    c.push(99)
+    return c
+}
+
+fn mapa() -> map[str]int {
+    var m: map[str]int = {}
+    m["a"] = 1
+    return m
+}
+
+fn par(n: int) -> bool {
+    return n % 2 == 0
+}
+
+fn nada() {
+    return
+}
+
+print(saudar("ana"))
+print(saudar("ana", vezes: 3))
+print(saudar("ana", fim: "?", vezes: 2))
+print(fat(10), fat(20))
+contar()
+contar()
+print(contador)
+let base = [1]
+let nova = adiciona(base)
+print(base.len(), nova.len(), nova.join(","))
+print(mapa().len(), mapa()["a"])
+print(par(4), par(3))
+nada()
+print("fim")

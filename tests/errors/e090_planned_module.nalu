@@ -1,0 +1,4 @@
+// error: E090
+// pkg is planned: the check refuses it, instead of the script failing when it runs.
+let m = pkg.manager()
+print(m)

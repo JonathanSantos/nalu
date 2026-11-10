@@ -1,0 +1,4 @@
+// error: E006
+let a = 1
+let ok = a == 1 or a == 2
+print(ok)

@@ -1,0 +1,22 @@
+// retry: tries until it stops failing; after the last attempt, fails with the last error.
+var tentativas = 0
+retry(3, every: 10ms) {
+    tentativas += 1
+    print("tentativa {tentativas}")
+    if tentativas < 3 {
+        fail "ainda não"
+    }
+}
+print("ok depois de {tentativas}")
+var n = 0
+retry(2, every: 1ms) {
+    n += 1
+    fail "sempre falha {n}"
+} catch {
+    print("desistiu: {err}")
+}
+var m = 0
+retry(4) {
+    m += 1
+}
+print("m={m}")

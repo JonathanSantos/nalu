@@ -1,0 +1,7 @@
+// error: E010
+// A name takes the value, so it has its own arm.
+let n = 3
+match n {
+    1 | k => print(k)
+    _     => print("other")
+}

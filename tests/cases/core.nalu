@@ -1,0 +1,63 @@
+// let/var, compound assignments, if/else if, if as an expression, for with ranges, while with break/continue, match.
+let nome = "nalu"
+var n = 0
+n += 5
+n -= 1
+n *= 3
+n /= 2
+n %= 4
+print(nome, n, true)
+
+if n > 1 && nome == "nalu" {
+    print("if ok")
+} else if n == 0 {
+    print("zero")
+} else {
+    print("else")
+}
+
+let tipo = if n == 2 { "dois" } else { "outro" }
+print(tipo)
+
+for i in 0..3 {
+    print("faixa {i}")
+}
+for i in 1..=2 {
+    print("incl {i}")
+}
+for i in 3..3 {
+    print("nunca {i}")
+}
+
+var soma = 0
+var k = 0
+while k < 10 {
+    k += 1
+    if k % 2 == 0 {
+        continue
+    }
+    if k > 7 {
+        break
+    }
+    soma += k
+}
+print("soma {soma}")
+
+for i, x in ["a", "b"] {
+    print("{i}={x}")
+}
+
+let faixa = match n {
+    0    => "zero"
+    1..3 => "pouco"
+    _    => "muito"
+}
+print(faixa)
+
+match "b" {
+    "a"       => print("A")
+    "b" | "c" => print("B ou C")
+    _         => print("?")
+}
+print()
+print("fim", !true, !(n == 2))

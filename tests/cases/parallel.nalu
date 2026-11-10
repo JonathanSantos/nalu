@@ -1,0 +1,40 @@
+// parallel: results in list order, max, tasks, aggregated error.
+fn dobro(n: int) -> int {
+    if n > 5 {
+        fail "falhou {n}"
+    }
+    return n * 2
+}
+
+fn grava(p: path, texto: str) {
+    fs.write(p, texto)
+}
+
+let nums = [1, 2, 4, 5]
+let r = parallel(max: 2) for n in nums {
+    dobro(n)
+}
+print(r.join(","))
+let r2 = parallel for n in [7, 1, 9] {
+    dobro(n) catch 0
+}
+print(r2.join(","))
+try {
+    let r3 = parallel for n in [7, 1, 9] {
+        dobro(n)
+    }
+    print("nunca {r3.len()}")
+} catch {
+    print(err.message)
+}
+let tmp = fs.temp_dir()
+parallel {
+    grava(tmp / "a.txt", "1")
+    grava(tmp / "b.txt", "2")
+}
+print(fs.read(tmp / "a.txt") + fs.read(tmp / "b.txt"))
+parallel(max: 3) for n in nums {
+    grava(tmp / "n{n}.txt", "{n}")
+}
+print(fs.ls(tmp).join(","))
+fs.rm(tmp)

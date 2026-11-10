@@ -1,0 +1,7 @@
+// error: E012
+struct S {
+    nome: str
+    porta: int
+}
+let s = S { nome: "a" }
+print(s.nome)

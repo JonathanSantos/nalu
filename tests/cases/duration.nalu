@@ -1,0 +1,15 @@
+// duration: literals, arithmetic with units, text, / 1s.
+let a = 1m30s
+let b = 250ms
+print("{a} {b} {0s} {1.5s} {1d2h} {90s} {2h} {7d}")
+print("{30s * 4} {1h - 1s} {2h / 4} {10s % 3s} {2 * 1m}")
+print(a / 1s, 1500ms / 1ms, 7d / 1h)
+print(a > 1m, b < 1s, a == 90s)
+print("{a}", duracao_texto(5m))
+let lista = [1s, 500ms, 1s]
+print("{lista.sum()}")
+time.sleep(10ms)
+
+fn duracao_texto(d: duration) -> str {
+    return "[{d}]"
+}

@@ -1,0 +1,45 @@
+// Structs: literals with and without a name, defaults, ..base, methods with self, copy, lists of structs, list field.
+struct Servico {
+    nome: str
+    porta: int
+    replicas: int = 1
+    deps: []str = []
+
+    fn url() -> str {
+        return "http://localhost:{self.porta}"
+    }
+
+    fn escalar(n: int) -> Servico {
+        return Servico { ..self, replicas: self.replicas * n }
+    }
+}
+
+fn zerar_porta(sv: Servico) -> int {
+    var c = sv
+    c.porta = 0
+    return c.porta
+}
+
+let api = Servico { nome: "api", porta: 8080 }
+print(api.nome, api.porta, api.replicas, api.deps.len())
+print(api.url())
+let grande = api.escalar(3)
+print(grande.replicas, api.replicas, grande.nome)
+var s = api
+s.porta = 1
+print(s.porta, api.porta)
+let outra = Servico { ..api, porta: 9090, deps: ["db", "cache"] }
+print(outra.nome, outra.porta, outra.deps.join("+"))
+var servicos: []Servico = [api, { nome: "web", porta: 3000 }]
+servicos.push(Servico { nome: "worker", porta: 9090, replicas: 2 })
+print(servicos.len(), servicos[1].nome, servicos[2].replicas)
+for sv in servicos {
+    print("{sv.nome}:{sv.porta}")
+}
+print(servicos.map(x => x.nome).join(","))
+let w = servicos.find(x => x.nome == "worker") catch api
+print(w.porta)
+let ordenados = servicos.sort_by(x => x.porta)
+print(ordenados.map(x => x.nome).join(","))
+print(zerar_porta(api), api.porta)
+print(servicos[0].url(), outra.escalar(2).replicas)

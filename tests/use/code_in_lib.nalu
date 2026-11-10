@@ -1,0 +1,4 @@
+// error: E055
+use "lib/with_code.nalu"
+
+print(f())

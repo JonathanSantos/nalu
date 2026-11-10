@@ -1,0 +1,3 @@
+// error: E054
+// A pattern is checked when the script compiles.
+print(regex.test("abc", 'a(b'))

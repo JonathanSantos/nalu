@@ -1,0 +1,15 @@
+// mapa: 2.000 chaves distintas, 4.000 set/get
+fn contar(palavras: []str) -> map[str]int {
+    var m: map[str]int = {}
+    for p in palavras {
+        m[p] = (m[p] catch 0) + 1
+    }
+    return m
+}
+
+var palavras: []str = []
+for i in 0..4_000 {
+    palavras.push("p{i % 2_000}")
+}
+let m = contar(palavras)
+print("chaves={m.len()} p7={m["p7"] catch -1} p1999={m["p1999"] catch -1} tem={m.has("p2000")}")

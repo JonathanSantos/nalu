@@ -1,0 +1,12 @@
+// error: E010
+// A struct can't hold itself, directly or through another struct.
+struct Node {
+    name: str
+    next: Next
+}
+
+struct Next {
+    node: Node
+}
+
+print(1)

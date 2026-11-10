@@ -1,0 +1,7 @@
+// error: E031
+let n = 3
+let t = match n {
+    1 => "um"
+    2 => "dois"
+}
+print(t)

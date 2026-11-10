@@ -1,0 +1,47 @@
+// backup.nalu: compresses folders in parallel and moves the result into the backups folder.
+// Shows: fail, `catch` with a block and with fail, defer, parallel with a limit and results,
+//         match with ranges as an expression, paths with /, .sum().
+
+/// where to keep the backups
+param dest: path = "~/backups"
+/// folders to compress (comma-separated)
+param folders: []str = ["docs", "photos", "projects"]
+
+// Returns the size of the archive, in bytes. If any line fails, the function fails.
+fn compress(folder: str, out: path) -> int {
+    if !fs.exists(folder) {
+        fail "the folder {folder} does not exist"
+    }
+    $ tar -czf {out} {folder}
+    return fs.size(out)
+}
+
+fn readable(bytes: int) -> str {
+    return match bytes {
+        0..1_024                 => "{bytes} B"
+        1_024..1_048_576         => "{bytes / 1_024} KB"
+        1_048_576..1_073_741_824 => "{bytes / 1_048_576} MB"
+        _                        => "{bytes / 1_073_741_824} GB"
+    }
+}
+
+let tmp = fs.temp_dir() catch fail "could not create a temporary folder"
+defer fs.rm(tmp)  // at exit, even after a failure or Ctrl+C
+
+// At most 4 archives at a time. The body returns one value per task (the size, or 0 if it failed).
+let sizes = parallel(max: 4) for folder in folders {
+    compress(folder, tmp / "{folder}.tgz") catch {
+        log.error("could not compress {folder}: {err}")
+        0
+    }
+}
+
+fs.mkdir(dest)
+let final = dest / time.format("%Y-%m-%d_%H-%M")
+fs.move(tmp, final) catch fail "could not move the backup to {final}: {err}"
+
+log.info("{folders.len()} folders, {readable(sizes.sum())} saved in {final}")
+
+if os == "windows" {
+    $ explorer {dest} catch ignore  // opening Explorer is optional
+}

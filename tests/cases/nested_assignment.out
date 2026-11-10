@@ -1,0 +1,12 @@
+0,5 7,0
+api web 8080
+p,Q
+main.go
+7,9
+1 1,2
+build 2 1
+  make
+  make test
+lint 0 0
+/bin:/usr/bin
+2,1

@@ -1,0 +1,26 @@
+// Parameters: --x v, --x=v, bool, --bool=false, lists, []int, enum, duration, path, args and --.
+/// ambiente de destino
+param ambiente: Ambiente = Ambiente.dev
+/// quem
+param nome: str
+/// quantas vezes
+param vezes: int = 1
+/// espera
+param espera: duration = 30s
+/// pastas
+param pastas: []str = ["docs"]
+/// números
+param nums: []int = []
+/// força
+param forcar: bool
+/// limpa o cache
+param limpar_cache: bool = true
+/// destino
+param destino: path = "dist"
+/// atraso
+param atraso: duration = 1s
+
+enum Ambiente { dev, stage, prod }
+
+print(ambiente, nome, vezes, "{espera}", pastas.join("|"), nums.sum(), forcar, limpar_cache, destino, "{atraso}")
+print(args.len(), args.join("|"))

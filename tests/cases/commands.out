@@ -1,0 +1,20 @@
+a b|c d; $HOME *
+[c d; $HOME *]
+./f.txt
+api=c d; $HOME *
+<1><2 3>
+[a
+b]
+ABC
+tem pasta
+sem pasta
+código 3
+ABC|
+para-arquivo
+mais
+linhas: 2
+stderr: para-o-erro
+junto
+não existe: 127
+capturou falha
+pipe ok

@@ -1,0 +1,123 @@
+# Publica um release quando uma tag `vX.Y.Z` é enviada:
+# compila o binário `nalu` para macOS, Linux e Windows, empacota cada um
+# e anexa tudo ao release junto com um `checksums.txt` (SHA-256).
+#
+#   git tag v1.2.0 && git push origin v1.2.0
+#
+# Os nomes dos arquivos não levam a versão, então os links
+# `releases/latest/download/<arquivo>` do README continuam valendo a cada release.
+name: release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+*"
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: ${{ matrix.asset }}
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - asset: nalu-macos-arm64
+            os: macos-latest
+            target: aarch64-apple-darwin
+          - asset: nalu-macos-x64
+            os: macos-latest
+            target: x86_64-apple-darwin
+          # musl: binário estático, roda em qualquer distribuição (inclusive Alpine).
+          - asset: nalu-linux-x64
+            os: ubuntu-latest
+            target: x86_64-unknown-linux-musl
+          - asset: nalu-linux-arm64
+            os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-musl
+          - asset: nalu-windows-x64
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: A tag confere com a versão do Cargo.toml
+        shell: bash
+        run: |
+          versao=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          if [ "v$versao" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME, mas o Cargo.toml diz $versao"
+            exit 1
+          fi
+
+      - name: Toolchain
+        shell: bash
+        run: |
+          rustup toolchain install stable --profile minimal
+          rustup default stable
+          rustup target add ${{ matrix.target }}
+
+      - name: Build
+        shell: bash
+        env:
+          # Windows: CRT estática, para não depender do Visual C++ Redistributable.
+          RUSTFLAGS: ${{ runner.os == 'Windows' && '-C target-feature=+crt-static' || '' }}
+        run: cargo build --release --locked --target ${{ matrix.target }}
+
+      - name: Empacota
+        shell: bash
+        run: |
+          mkdir pacote
+          cp README.md README.pt-BR.md CHANGELOG.md pacote/
+          if [ "$RUNNER_OS" = Windows ]; then
+            cp target/${{ matrix.target }}/release/nalu.exe pacote/
+            (cd pacote && 7z a -tzip ../${{ matrix.asset }}.zip . >/dev/null)
+          else
+            cp target/${{ matrix.target }}/release/nalu pacote/
+            tar -czf ${{ matrix.asset }}.tar.gz -C pacote nalu README.md README.pt-BR.md CHANGELOG.md
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: |
+            ${{ matrix.asset }}.tar.gz
+            ${{ matrix.asset }}.zip
+          if-no-files-found: error
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: saida
+          merge-multiple: true
+
+      - name: checksums.txt
+        working-directory: saida
+        run: |
+          sha256sum nalu-* > checksums.txt
+          cat checksums.txt
+
+      - name: Notas do release (seção da versão no CHANGELOG)
+        run: |
+          versao=${GITHUB_REF_NAME#v}
+          awk -v v="$versao" '
+            /^## / { dentro = (index($0, "## " v) == 1); next }
+            dentro
+          ' CHANGELOG.md > notas.md
+          [ -s notas.md ] || echo "Nalu $versao" > notas.md
+
+      - name: Publica
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" saida/* \
+            --title "Nalu ${GITHUB_REF_NAME#v}" \
+            --notes-file notas.md \
+            --verify-tag
