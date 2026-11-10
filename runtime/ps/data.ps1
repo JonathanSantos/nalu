@@ -282,6 +282,21 @@ function __ArchiveTarExtract([string]$file, [string]$to) {
     if ($code -ne 0) { __Throw ("archive.tar_extract: could not extract '" + $file + "'") 1 }
 }
 
+# @fn __ArchiveZipCreate
+# @needs __Full __DryW __Throw
+# .NET's ZipFile instead of Compress-Archive, which in 5.1 writes entry names with `\` (broken on Unix).
+function __ArchiveZipCreate([string]$file, [string]$dir) {
+    $d = (__Full $dir).TrimEnd([char]'\', [char]'/')
+    if (__DryW ('archive.zip_create ' + $file + ' ' + $dir) $file) { return }
+    if (-not [IO.Directory]::Exists($d)) { __Throw ("archive.zip_create: folder '" + $dir + "' does not exist") 1 }
+    $f = __Full $file
+    try {
+        Add-Type -AssemblyName System.IO.Compression.FileSystem -ErrorAction Stop
+        if ([IO.File]::Exists($f)) { [IO.File]::Delete($f) }
+        [IO.Compression.ZipFile]::CreateFromDirectory($d, $f, [IO.Compression.CompressionLevel]::Optimal, $true)
+    } catch { __Throw ("archive.zip_create: could not create '" + $file + "'") 1 }
+}
+
 # @fn __ArchiveZipExtract
 # @needs __Full __DryW __Throw
 function __ArchiveZipExtract([string]$file, [string]$to) {

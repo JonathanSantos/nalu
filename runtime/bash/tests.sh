@@ -324,6 +324,18 @@ ok __archive_tar_extract 'extracts' __archive_tar_extract "$tmp/arq/p.tgz" "$tmp
 eq __archive_tar_extract 'content' "$(cat "$tmp/arq/x/p/a.txt")" x
 no __archive_tar_create 'folder does not exist' __archive_tar_create "$tmp/arq/q.tgz" "$tmp/arq/nao"
 no __archive_zip_extract 'does not exist' __archive_zip_extract "$tmp/nao.zip" "$tmp/z"
+no __archive_zip_create 'folder does not exist' __archive_zip_create "$tmp/arq/q.zip" "$tmp/arq/nao"
+if type -P zip >/dev/null 2>&1 || tar --version 2>/dev/null | grep -q bsdtar; then
+  ok __archive_zip_create 'creates' __archive_zip_create "$tmp/arq/c.zip" "$tmp/arq/p"
+  ok __archive_zip_create 'replaces' __archive_zip_create "$tmp/arq/c.zip" "$tmp/arq/p"
+  if type -P unzip >/dev/null 2>&1 || tar --version 2>/dev/null | grep -q bsdtar; then
+    __archive_zip_extract "$tmp/arq/c.zip" "$tmp/arq/cz"
+    eq __archive_zip_create 'round trip' "$(cat "$tmp/arq/cz/p/a.txt" 2>/dev/null)" x
+  fi
+  (cd "$tmp/arq" && __archive_zip_create rel.zip p); ok __archive_zip_create 'relative path' test -f "$tmp/arq/rel.zip"
+else
+  no __archive_zip_create 'without zip' __archive_zip_create "$tmp/arq/c.zip" "$tmp/arq/p"
+fi
 if type -P zip >/dev/null 2>&1; then
   (cd "$tmp/arq" && zip -q -r p.zip p)
   ok __archive_zip_extract 'extracts' __archive_zip_extract "$tmp/arq/p.zip" "$tmp/arq/z"

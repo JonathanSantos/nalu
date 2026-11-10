@@ -14,6 +14,7 @@ Creates and extracts .tar.gz and .zip archives.
 
 - `archive.tar_create(file: path, dir: path)` (can fail, writes): Creates a .tar.gz with the folder inside (the folder's name is the archive's root).
 - `archive.tar_extract(file: path, to: path)` (can fail, writes): Extracts a .tar.gz into `to`, creating it.
+- `archive.zip_create(file: path, dir: path)` (can fail, writes): Creates a .zip with the folder as the top entry, replacing the file if it exists. Unix: zip (or BSD tar); Windows: .NET.
 - `archive.zip_extract(file: path, to: path)` (can fail, writes): Extracts a .zip into `to`, creating it. Unix: unzip (or BSD tar); Windows: Expand-Archive.
 
 ## Module dirs

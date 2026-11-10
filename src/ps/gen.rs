@@ -1097,6 +1097,7 @@ impl<'a> Gen<'a> {
             ("hash", "sha256_file") => V(format!("(__HashSha256File {})", a0)),
             ("archive", "tar_create") => S(format!("__ArchiveTarCreate {} {}", a0, a1)),
             ("archive", "tar_extract") => S(format!("__ArchiveTarExtract {} {}", a0, a1)),
+            ("archive", "zip_create") => S(format!("__ArchiveZipCreate {} {}", a0, a1)),
             ("archive", "zip_extract") => S(format!("__ArchiveZipExtract {} {}", a0, a1)),
             ("json", "get") => V(format!("(__JsonGet {} {})", a0, a1)),
             ("json", "get_list") => V(format!("(__JsonChildren {} {} 'a' 'item')", a0, a1)),

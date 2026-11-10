@@ -143,6 +143,7 @@ pub static STDLIB: &[StdFn] = &[
     // archive
     f("archive", "tar_create", &[p("file", "path"), p("dir", "path")], "unit", true, true, true, "Creates a .tar.gz with the folder inside (the folder's name is the archive's root)."),
     f("archive", "tar_extract", &[p("file", "path"), p("to", "path")], "unit", true, true, true, "Extracts a .tar.gz into `to`, creating it."),
+    f("archive", "zip_create", &[p("file", "path"), p("dir", "path")], "unit", true, true, true, "Creates a .zip with the folder as the top entry, replacing the file if it exists. Unix: zip (or BSD tar); Windows: .NET."),
     f("archive", "zip_extract", &[p("file", "path"), p("to", "path")], "unit", true, true, true, "Extracts a .zip into `to`, creating it. Unix: unzip (or BSD tar); Windows: Expand-Archive."),
     // pkg
     f("pkg", "manager", &[], "str", false, false, false, "The system's package manager: apt-get, dnf, yum, pacman, zypper, apk; brew; winget, choco, scoop; or \"\". Planned; the compiler refuses it for now (E090)."),

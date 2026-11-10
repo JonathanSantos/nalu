@@ -659,6 +659,7 @@ impl<'a> Gen<'a> {
             "hash.sha256_file" => self.helper("__hash_sha256_file", &a, true, ret_w()),
             "archive.tar_create" => self.helper("__archive_tar_create", &a, true, Val::Unit),
             "archive.tar_extract" => self.helper("__archive_tar_extract", &a, true, Val::Unit),
+            "archive.zip_create" => self.helper("__archive_zip_create", &a, true, Val::Unit),
             "archive.zip_extract" => self.helper("__archive_zip_extract", &a, true, Val::Unit),
             "json.get" => self.helper("__json_get", &a, true, ret_w()),
             "json.get_list" => self.helper("__json_children", &[a[0].clone(), a[1].clone(), "a".into(), "item".into()], true, ret_a()),

@@ -91,6 +91,15 @@ Check 'tar folder does not exist' (Fails { __ArchiveTarCreate (Join-Path $tmpd '
 Compress-Archive -LiteralPath (Join-Path $tmpd 'p') -DestinationPath (Join-Path $tmpd 'p.zip')
 __ArchiveZipExtract (Join-Path $tmpd 'p.zip') (Join-Path $tmpd 'z')
 Check 'zip extracts' ([IO.File]::ReadAllText((Join-Path $tmpd 'z/p/a.txt'))) 'x'
+__ArchiveZipCreate (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'p')
+__ArchiveZipCreate (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'p')
+__ArchiveZipExtract (Join-Path $tmpd 'c.zip') (Join-Path $tmpd 'cz')
+Check 'zip_create round trip' ([IO.File]::ReadAllText((Join-Path $tmpd 'cz/p/a.txt'))) 'x'
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+$zr = [IO.Compression.ZipFile]::OpenRead((Join-Path $tmpd 'c.zip'))
+Check 'zip_create entry names use /' (@($zr.Entries | Where-Object { $_.FullName -eq 'p/a.txt' }).Count) 1
+$zr.Dispose()
+Check 'zip_create folder does not exist' (Fails { __ArchiveZipCreate (Join-Path $tmpd 'q.zip') (Join-Path $tmpd 'nao') }) $true
 Check 'zip does not exist' (Fails { __ArchiveZipExtract (Join-Path $tmpd 'nao.zip') (Join-Path $tmpd 'z2') }) $true
 Check 'chmod exists' (Fails { __FsChmod (Join-Path $tmpd 'h.txt') '+x' }) $false
 Check 'chmod does not exist' (Fails { __FsChmod (Join-Path $tmpd 'nao') '+x' }) $true

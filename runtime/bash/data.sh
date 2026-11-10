@@ -372,6 +372,34 @@ __archive_tar_extract() {
   mkdir -p -- "$__p" && tar -xzf "$__h_f" -C "$__p" 2>/dev/null || __err "archive.tar_extract: could not extract '$1'"
 }
 
+# @fn __archive_zip_create
+# @needs __err __tilde __dry_skip
+# @target all
+__archive_zip_create() {
+  __tilde "$1"
+  local __h_f=$__p
+  __tilde "$2"
+  local __h_d=${__p%/}
+  __dry_skip "archive.zip_create $1 $2" "$__h_f" && return 0
+  [[ -d $__h_d ]] || { __err "archive.zip_create: folder '$2' does not exist"; return; }
+  local __h_base=${__h_d##*/} __h_parent=${__h_d%/*}
+  [[ $__h_parent == "$__h_d" ]] && __h_parent=.
+  [[ -z $__h_parent ]] && __h_parent=/
+  # zip runs inside the parent folder, so the file needs a full path; zip adds to a file that exists, so it goes first
+  [[ $__h_f == /* ]] || __h_f=$PWD/$__h_f
+  rm -f -- "$__h_f" 2>/dev/null
+  if type -P zip >/dev/null 2>&1; then
+    (cd "$__h_parent" && zip -q -r "$__h_f" "./$__h_base") >/dev/null 2>&1 && return 0
+  elif tar --version 2>/dev/null | grep -q bsdtar; then
+    # macOS tar (bsdtar) also writes zip
+    tar --format zip -cf "$__h_f" -C "$__h_parent" -- "$__h_base" 2>/dev/null && return 0
+  else
+    __err "archive.zip_create: needs zip"
+    return
+  fi
+  __err "archive.zip_create: could not create '$1'"
+}
+
 # @fn __archive_zip_extract
 # @needs __err __tilde __dry_skip
 # @target all
