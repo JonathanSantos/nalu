@@ -169,7 +169,7 @@ pub fn word_e(e: Expr) -> Word {
     Word::Interp(vec![Part::Expr(e)])
 }
 pub fn cmd(words: Vec<Word>, text: &str) -> Command {
-    Command { pipeline: vec![SimpleCmd { words }], redirects: vec![], stdin: None, text: text.into() }
+    Command { pipeline: vec![SimpleCmd::new(words)], redirects: vec![], stdin: None, text: text.into() }
 }
 pub fn lit_cmd(text: &str) -> Command {
     cmd(text.split(' ').map(word_lit).collect(), text)
@@ -773,7 +773,7 @@ fn cap(c: Command) -> Rvalue {
 fn commands() {
     let mut pipe = lit_cmd("printf a\\nb\\nc\\n");
     pipe.pipeline[0].words = vec![word_lit("printf"), word_lit("%s\\n"), word_lit("a"), word_lit("b b"), word_lit("c")];
-    pipe.pipeline.push(SimpleCmd { words: vec![word_lit("sort"), word_lit("-r")] });
+    pipe.pipeline.push(SimpleCmd::new(vec![word_lit("sort"), word_lit("-r")]));
     pipe.text = "printf '%s\\n' a 'b b' c | sort -r".into();
     let mut red = cmd(vec![word_lit("echo"), word_e(vs("x"))], "echo {x}");
     red.redirects.push(Redirect::Out { path: s("saida.txt"), append: false });

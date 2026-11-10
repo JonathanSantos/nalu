@@ -370,6 +370,15 @@ pub struct Command {
 pub struct SimpleCmd {
     /// Never empty. `words[0]` is the program.
     pub words: Vec<Word>,
+    /// `NAME=value` written before the program: environment variables for this program only.
+    /// The value is a `Lit` or an `Interp` (one text), never a `Spread`.
+    pub env: Vec<(String, Word)>,
+}
+
+impl SimpleCmd {
+    pub fn new(words: Vec<Word>) -> Self {
+        SimpleCmd { words, env: Vec::new() }
+    }
 }
 
 #[derive(Clone, Debug)]

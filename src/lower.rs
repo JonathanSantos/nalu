@@ -1406,7 +1406,9 @@ impl<'a> Lowerer<'a> {
         let mut pipeline = Vec::new();
         for (si, st) in c.stages.iter().enumerate() {
             let mut words = Vec::new();
-            for w in st {
+            // the values of `NAME=value` go through the same lowering as the words, ahead of them
+            let env = c.envs.get(si).map(|e| e.as_slice()).unwrap_or(&[]);
+            for w in env.iter().map(|(_, w)| w).chain(st) {
                 words.push(match w {
                     TWord::Lit(s) => Word::Lit(s.clone()),
                     TWord::Interp(parts) => {
@@ -1465,12 +1467,15 @@ impl<'a> Lowerer<'a> {
                     TWord::Spread(e) => Word::Spread(self.place_expr(e, out)),
                 });
             }
-            if let Some(Word::Lit(prog)) = words.first() {
+            if let Some(Word::Lit(prog)) = words.get(env.len()) {
                 let sp = c.prog_spans.get(si).copied().unwrap_or(c.span);
                 self.program_used(prog, sp);
             }
+            let rest = words.split_off(env.len().min(words.len()));
+            let env: Vec<(String, Word)> = env.iter().map(|(n, _)| n.clone()).zip(words).collect();
+            let words = rest;
             if !words.is_empty() {
-                pipeline.push(SimpleCmd { words });
+                pipeline.push(SimpleCmd { words, env });
             }
         }
         let mut redirects = Vec::new();

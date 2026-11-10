@@ -109,7 +109,7 @@ fn func(name: &str, params: Vec<(&str, Ty)>, ret: Ty, body: Vec<Stmt>, fallible:
     Func { name: name.into(), params: params.into_iter().map(|(n, t)| FParam { name: n.into(), ty: t }).collect(), ret, body: b(body), fallible, doc: String::new() }
 }
 fn lit_words(ws: &[&str]) -> SimpleCmd {
-    SimpleCmd { words: ws.iter().map(|w| Word::Lit(w.to_string())).collect() }
+    SimpleCmd::new(ws.iter().map(|w| Word::Lit(w.to_string())).collect())
 }
 fn command(pipeline: Vec<SimpleCmd>, text: &str) -> Command {
     Command { pipeline, redirects: vec![], stdin: None, text: text.into() }
@@ -641,7 +641,7 @@ fn external_commands() {
         return;
     }
     let x = || v("x", Ty::Str);
-    let words = |ws: Vec<Word>| SimpleCmd { words: ws };
+    let words = |ws: Vec<Word>| SimpleCmd::new(ws);
     let mut c1 = command(vec![words(vec![Word::Lit("printf".into()), Word::Lit("[%s]\n".into()), Word::Interp(vec![pe(x())]), Word::Lit("".into()), Word::Lit("a\"b c".into()), Word::Lit("\\\"x\\".into())])], "printf \"[%s]\\n\" {x} \"\" 'a\"b c' '\\\"x\\'");
     c1.redirects = vec![];
     let mut c2 = command(vec![lit_words(&["tr", "a-z", "A-Z"])], "tr a-z A-Z");
@@ -678,7 +678,7 @@ fn external_commands() {
         st(StmtKind::Command { cmd: command(vec![lit_words(&["programa-que-nao-existe-xyz"])], "programa-que-nao-existe-xyz"), on_fail: OnFail::Block { err: None, body: b(vec![print(vec![err_field("code", Ty::Int)])]), value: None } }),
         st(StmtKind::Command { cmd: command(vec![lit_words(&["sh", "-c", "exit 5"])], "sh -c 'exit 5'"), on_fail: OnFail::Propagate }),
     ]);
-    if let Some(r) = expect(&p, &[], "[c d; $HOME *]\n[]\n[a\"b c]\n[\\\"x\\]\nABC|\nABC DEF\n5 5\ncódigo 3\nerro\n\n[a\nb]\ntrue false\ncommand `sh` failed with exit code 1\n127\n", 5) {
+    if let Some(r) = expect(&p, &[], "[c d; $HOME *]\n[]\n[a\"b c]\n[\\\"x\\]\nABC|\nABC DEF\n5 5\ncódigo 3\nerro\n\n[a\nb]\ntrue false\ncommand `sh -c 'exit 1' | cat` failed with exit code 1\n127\n", 5) {
         assert!(r.err.contains("failed with exit code 5"), "{}", r.err);
     }
 }
@@ -686,7 +686,7 @@ fn external_commands() {
 #[test]
 fn dry_run_and_verbose_with_secret() {
     let tok = || Expr { kind: ExprKind::Var("token".into()), ty: Ty::Secret };
-    let c = command(vec![SimpleCmd { words: vec![Word::Lit("printf".into()), Word::Lit("%s".into()), Word::Interp(vec![pe(tok())])] }], "printf %s {token}");
+    let c = command(vec![SimpleCmd::new(vec![Word::Lit("printf".into()), Word::Lit("%s".into()), Word::Interp(vec![pe(tok())])])], "printf %s {token}");
     let mut p = prog(vec![
         st(StmtKind::Command { cmd: c, on_fail: OnFail::Propagate }),
         let_call("t", stdf("fs", "temp_dir", vec![], Ty::Path, true), OnFail::Propagate),
@@ -893,4 +893,24 @@ fn parallel_reads_enclosing_function_and_copies_globals() {
         true,
     ));
     expect(&p, &[], "103,106,109 1\n", 0);
+}
+
+/// `NAME=value` before the program reaches only that process (through `ProcessStartInfo.EnvironmentVariables`).
+#[test]
+fn command_env_vars() {
+    if cfg!(windows) {
+        return;
+    }
+    let mut sc = lit_words(&["sh", "-c", "echo \"$A-$B-${C:-unset}\""]);
+    sc.env = vec![("A".into(), Word::Lit("1".into())), ("B".into(), Word::Interp(vec![pe(v("x", Ty::Str))]))];
+    let c = command(vec![sc], "A=1 B={x} sh -c 'echo \"$A-$B-${C:-unset}\"'");
+    let mut first = lit_words(&["sh", "-c", "echo $C"]);
+    first.env = vec![("C".into(), Word::Lit("piped".into()))];
+    let c2 = command(vec![first, lit_words(&["sh", "-c", "cat; echo ${C:-unset}"])], "C=piped sh -c 'echo $C' | sh -c 'cat; echo ${C:-unset}'");
+    let p = prog(vec![
+        let_e("x", s("c d")),
+        st(StmtKind::Command { cmd: c, on_fail: OnFail::Propagate }),
+        st(StmtKind::Command { cmd: c2, on_fail: OnFail::Propagate }),
+    ]);
+    expect(&p, &[], "1-c d-unset\npiped\nunset\n", 0);
 }

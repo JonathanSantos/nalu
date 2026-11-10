@@ -1,0 +1,13 @@
+hello, ana maria
+1-x y; $HOME
+token has 6 characters
+1
+2
+condition
+[]
+second
+false false false
+inner
+outer
+3 command `CODE=3 sh -c 'exit $CODE'` failed with exit code 3
+127 command `nalu-missing-program-xyz` was not found

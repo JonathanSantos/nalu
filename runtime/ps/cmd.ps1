@@ -44,7 +44,7 @@ function __CmdLine($words, [int]$from) {
 
 # @fn __StartProc
 # @needs __CmdLine __QArg __IsWin
-function __StartProc([string]$exe, $words, [bool]$rin, [bool]$rout, [bool]$rerr) {
+function __StartProc([string]$exe, $words, [bool]$rin, [bool]$rout, [bool]$rerr, $vars) {
     $psi = New-Object System.Diagnostics.ProcessStartInfo
     $args1 = __CmdLine $words 1
     if ($script:__isWin -and ($exe.EndsWith('.cmd', [StringComparison]::OrdinalIgnoreCase) -or $exe.EndsWith('.bat', [StringComparison]::OrdinalIgnoreCase))) {
@@ -55,6 +55,10 @@ function __StartProc([string]$exe, $words, [bool]$rin, [bool]$rout, [bool]$rerr)
         $psi.Arguments = $args1
     }
     $psi.UseShellExecute = $false
+    # `NAME=value` before the program: variables for this process only
+    if ($null -ne $vars) {
+        for ($i = 0; $i + 1 -lt $vars.Count; $i += 2) { $psi.EnvironmentVariables[[string]$vars[$i]] = [string]$vars[$i + 1] }
+    }
     $psi.WorkingDirectory = (Get-Location).ProviderPath
     $psi.RedirectStandardInput = $rin
     $psi.RedirectStandardOutput = $rout
@@ -137,7 +141,9 @@ function __Exec($spec, [bool]$capture) {
             $rin = ($k -gt 0) -or ($null -ne $data) -or ($null -ne $inFile) -or $script:__parTask
             $rout = (-not $isLast) -or ($null -ne $dest)
             $rerr = $isLast -and (($null -ne $errFile) -or ($spec.e2o -and $null -ne $dest))
-            $p = __StartProc ([string]$exes[$k]) $w $rin $rout $rerr
+            $vars = $null
+            if ($spec.ContainsKey('v') -and $null -ne $spec.v) { $vars = $spec.v[$k] }
+            $p = __StartProc ([string]$exes[$k]) $w $rin $rout $rerr $vars
             $procs.Add($p)
             if ($rin) {
                 $sin = $p.StandardInput.BaseStream
@@ -203,9 +209,10 @@ function __Exec($spec, [bool]$capture) {
 
 # @fn __CmdFail
 # @needs __Throw
-function __CmdFail($r) {
+# The message names the whole command as written (with its values), like the Bash scripts; a missing program is named alone.
+function __CmdFail($r, [string]$text) {
     if ($r.notfound) { __Throw ('command `' + $r.prog + '` was not found') 127 }
-    __Throw ('command `' + $r.prog + '` failed with exit code ' + $r.code) $r.code
+    __Throw ('command `' + $text + '` failed with exit code ' + $r.code) $r.code
 }
 
 # @fn __Cmd
@@ -216,7 +223,7 @@ function __Cmd($spec) {
     if ($script:__verbose) { __ErrLine ('+ ' + $spec.t) }
     [Console]::Out.Flush()
     $r = __Exec $spec $false
-    if ($r.code -ne 0) { __CmdFail $r }
+    if ($r.code -ne 0) { __CmdFail $r ([string]$spec.t) }
 }
 
 # @fn __Capture
@@ -225,7 +232,7 @@ function __Cmd($spec) {
 function __Capture($spec) {
     if ($script:__verbose) { __ErrLine ('+ ' + $spec.t) }
     $r = __Exec $spec $true
-    if ($r.code -ne 0) { __CmdFail $r }
+    if ($r.code -ne 0) { __CmdFail $r ([string]$spec.t) }
     return [string]$r.out
 }
 

@@ -470,16 +470,15 @@ impl Nest {
         let Command { pipeline, redirects, stdin, text } = c;
         let pipeline = pipeline
             .into_iter()
-            .map(|sc| SimpleCmd {
-                words: sc
-                    .words
-                    .into_iter()
-                    .map(|w| match w {
-                        Word::Lit(s) => Word::Lit(s),
-                        Word::Interp(ps) => Word::Interp(self.parts(ps, line, pre)),
-                        Word::Spread(e) => Word::Spread(self.expr(e, line, pre)),
-                    })
-                    .collect(),
+            .map(|sc| {
+                let mut w = |w: Word, pre: &mut Vec<Stmt>| match w {
+                    Word::Lit(s) => Word::Lit(s),
+                    Word::Interp(ps) => Word::Interp(self.parts(ps, line, pre)),
+                    Word::Spread(e) => Word::Spread(self.expr(e, line, pre)),
+                };
+                let env = sc.env.into_iter().map(|(n, x)| (n, w(x, pre))).collect();
+                let words = sc.words.into_iter().map(|x| w(x, pre)).collect();
+                SimpleCmd { words, env }
             })
             .collect();
         let redirects = redirects
@@ -982,23 +981,22 @@ impl Flat {
         let mut x = |e: Expr, pre: &mut Vec<Stmt>| self.expr(e, line, pre);
         let pipeline = pipeline
             .into_iter()
-            .map(|sc| SimpleCmd {
-                words: sc
-                    .words
-                    .into_iter()
-                    .map(|w| match w {
-                        Word::Interp(ps) => Word::Interp(
-                            ps.into_iter()
-                                .map(|p| match p {
-                                    Part::Expr(e) => Part::Expr(x(e, pre)),
-                                    l => l,
-                                })
-                                .collect(),
-                        ),
-                        Word::Spread(e) => Word::Spread(x(e, pre)),
-                        w => w,
-                    })
-                    .collect(),
+            .map(|sc| {
+                let mut w = |w: Word, pre: &mut Vec<Stmt>| match w {
+                    Word::Interp(ps) => Word::Interp(
+                        ps.into_iter()
+                            .map(|p| match p {
+                                Part::Expr(e) => Part::Expr(x(e, pre)),
+                                l => l,
+                            })
+                            .collect(),
+                    ),
+                    Word::Spread(e) => Word::Spread(x(e, pre)),
+                    w => w,
+                };
+                let env = sc.env.into_iter().map(|(n, v)| (n, w(v, pre))).collect();
+                let words = sc.words.into_iter().map(|v| w(v, pre)).collect();
+                SimpleCmd { words, env }
             })
             .collect();
         let redirects = redirects

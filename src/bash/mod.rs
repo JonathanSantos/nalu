@@ -19,6 +19,7 @@
 
 mod call;
 mod cmd;
+pub(crate) use cmd::brace_groups;
 mod expr;
 mod gen;
 mod params;

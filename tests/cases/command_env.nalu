@@ -1,0 +1,31 @@
+// `NAME=value` before a program sets environment variables for that program only.
+/// token
+param token: secret
+
+let who = "ana maria"
+$ GREETING=hello NAME={who} sh -c 'echo "$GREETING, $NAME"'
+let v = $(A=1 B="x y; $HOME" sh -c 'echo "$A-$B"')
+print(v)
+// a secret may go in the environment (it is not an argument); the text shown hides it
+$ TOKEN={token} sh -c 'echo "token has ${#TOKEN} characters"'
+// each stage of a pipeline has its own
+$ X=1 sh -c 'echo $X' | Y=2 sh -c 'cat; echo $Y'
+if $ OK=yes sh -c 'test "$OK" = yes' {
+    print("condition")
+}
+$ EMPTY= sh -c 'echo "[$EMPTY]"'
+$ A=first A=second sh -c 'echo $A'
+// nothing stays in the script's own environment
+print(env.has("GREETING"), env.has("A"), env.has("TOKEN"))
+// it overrides `env.set` only for that program
+env.set("MODE", "outer")
+$ MODE=inner sh -c 'echo $MODE'
+$ sh -c 'echo $MODE'
+// a failure still names the program
+$ CODE=3 sh -c 'exit $CODE' catch {
+    print(err.code, err.message)
+}
+let missing = "nalu-missing-program-xyz"
+$ Z=1 {missing} catch {
+    print(err.code, err.message)
+}

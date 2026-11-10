@@ -6,7 +6,7 @@ use super::val::{Cond, Dest, Loc, Val};
 use crate::ir::*;
 
 /// The `{…}` pieces of the original text (outside single quotes), in order: (start, end) in bytes.
-fn brace_groups(text: &str) -> Vec<(usize, usize)> {
+pub(crate) fn brace_groups(text: &str) -> Vec<(usize, usize)> {
     let b = text.as_bytes();
     let mut out = Vec::new();
     let mut i = 0;
@@ -101,7 +101,8 @@ impl<'a> Gen<'a> {
     fn shown_exprs(cmd: &Command) -> Vec<(Expr, bool)> {
         let mut v = Vec::new();
         for sc in &cmd.pipeline {
-            for w in &sc.words {
+            // `NAME=value` comes before the program in the text
+            for w in sc.env.iter().map(|(_, w)| w).chain(&sc.words) {
                 match w {
                     Word::Lit(_) => {}
                     Word::Interp(parts) => {
@@ -155,6 +156,9 @@ impl<'a> Gen<'a> {
         for (si, sc) in cmd.pipeline.iter().enumerate() {
             if si > 0 {
                 w.push_lit(" | ");
+            }
+            for (name, _) in &sc.env {
+                w.push_lit(&format!("{}=… ", name));
             }
             for (wi, word) in sc.words.iter().enumerate() {
                 if wi > 0 {
@@ -212,6 +216,21 @@ impl<'a> Gen<'a> {
         }
     }
 
+    /// A stage as shell text: `NAME=value … program arguments`. The assignments sit right before the
+    /// program, so they reach only that process (and never its argument list).
+    fn stage_text(&mut self, sc: &SimpleCmd) -> String {
+        let mut ws: Vec<String> = Vec::new();
+        for (name, value) in &sc.env {
+            let v = self.cmd_word(value);
+            ws.push(format!("{}={}", name, v));
+        }
+        for w in &sc.words {
+            let x = self.cmd_word(w);
+            ws.push(x);
+        }
+        ws.join(" ")
+    }
+
     fn prog_name(sc: &SimpleCmd) -> String {
         match sc.words.first() {
             Some(Word::Lit(s)) => s.clone(),
@@ -232,8 +251,8 @@ impl<'a> Gen<'a> {
         let n = cmd.pipeline.len();
         let mut stages: Vec<String> = Vec::new();
         for sc in &cmd.pipeline {
-            let ws: Vec<String> = sc.words.iter().map(|w| self.cmd_word(w)).collect();
-            stages.push(ws.join(" "));
+            let s = self.stage_text(sc);
+            stages.push(s);
         }
         if let Some(e) = &cmd.stdin {
             let w = self.word(e).render();
@@ -260,7 +279,8 @@ impl<'a> Gen<'a> {
     }
 
     fn is_simple(cmd: &Command) -> bool {
-        cmd.pipeline.len() == 1 && cmd.redirects.is_empty() && cmd.stdin.is_none()
+        // with `NAME=value` the program is written in place (not behind `__cmd`), so the assignment applies to it
+        cmd.pipeline.len() == 1 && cmd.redirects.is_empty() && cmd.stdin.is_none() && cmd.pipeline[0].env.is_empty()
     }
 
     pub fn command_stmt(&mut self, cmd: &Command, on_fail: &OnFail) {
@@ -275,7 +295,15 @@ impl<'a> Gen<'a> {
         self.need("__show");
         self.need("__pipe_chk");
         let pl = self.pipeline_text(cmd);
-        let progs: Vec<String> = cmd.pipeline.iter().map(|s| sq(&Self::prog_name(s))).collect();
+        // the program of each stage, for "was not found" (a name that comes from a value included)
+        let mut progs: Vec<String> = Vec::new();
+        for s in &cmd.pipeline {
+            let p = match s.words.first() {
+                Some(w @ Word::Interp(_)) => self.cmd_word(w),
+                _ => sq(&Self::prog_name(s)),
+            };
+            progs.push(p);
+        }
         self.line(format!("if __show {}; then", disp));
         self.ind += 1;
         self.line(pl);

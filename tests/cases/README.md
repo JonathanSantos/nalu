@@ -84,6 +84,7 @@ that fails on purpose and an unhandled error; expected output in `tests/pacote/s
 | `error_handling` | `fail` with a code, `catch` in its five forms, `try`/`catch`, propagation through functions, `err.code`, `catch { break }` inside a loop, a top-level `catch fail` → exit code and `error: …` |
 | `top_level_failure` | an unhandled failure at the top level: `error: boom` on stderr and the `fail` code |
 | `commands` (unix) | `{x}` as **one** argument (with a space, `;`, `$`, `*`), mixed words, `{list}`, `$( )` without the trailing line breaks, pipes, `value \| $` without an extra `\n`, `if $`, `if !$`, `catch ignore`, `catch { err.code }`, `>`, `>>`, `<`, `2>`, `2>&1`, a missing program (127) through a dynamic name, pipefail, the command's exit code |
+| `command_env` (unix) | `NAME=value` before a program: literal and interpolated values, a secret, each stage of a pipeline, a condition, an empty value, nothing left in the script's environment, overriding `env.set`, failure messages |
 | `echo` | portable `$ echo` (one line, arguments joined by spaces, no arguments = empty line), `>`/`>>` in UTF-8 without a BOM with `\n`, `$(echo …)` |
 | `deps` | a missing program with a fixed name: nothing runs, code 127 |
 | `params` | `--x v`, `--x=v`, bool, `--bool=false`, lists, `int[]`, enum, duration, path, positionals in `args` and `--` |

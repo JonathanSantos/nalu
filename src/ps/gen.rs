@@ -1362,7 +1362,8 @@ impl<'a> Gen<'a> {
             }
         };
         for sc in &cmd.pipeline {
-            for w in &sc.words {
+            // `NAME=value` comes before the program in the text
+            for w in sc.env.iter().map(|(_, w)| w).chain(&sc.words) {
                 match w {
                     Word::Lit(_) => {}
                     Word::Interp(ps) => {
@@ -1378,37 +1379,23 @@ impl<'a> Gen<'a> {
         }
         for r in &cmd.redirects {
             if let Redirect::Out { path, .. } | Redirect::Err { path, .. } | Redirect::In(path) = r {
-                vals.push(show(path))
-            }
-        }
-                // `{…}` segments of the text
-        let text = &cmd.text;
-        let mut segs: Vec<(usize, usize)> = Vec::new();
-        let b = text.as_bytes();
-        let mut i = 0;
-        while i < b.len() {
-            if b[i] == b'{' {
-                let mut depth = 0;
-                let mut j = i;
-                while j < b.len() {
-                    if b[j] == b'{' {
-                        depth += 1
-                    } else if b[j] == b'}' {
-                        depth -= 1;
-                        if depth == 0 {
-                            break;
+                match &path.kind {
+                    // a fixed path has no `{…}` in the text
+                    ExprKind::Str(_) => {}
+                    ExprKind::Interp(ps) => {
+                        for p in ps {
+                            if let Part::Expr(e) = p {
+                                vals.push(show(e))
+                            }
                         }
                     }
-                    j += 1;
-                }
-                if j < b.len() {
-                    segs.push((i, j + 1));
-                    i = j + 1;
-                    continue;
+                    _ => vals.push(show(path)),
                 }
             }
-            i += 1;
         }
+        // `{…}` segments of the text (the same rule as the Bash backend: not inside single quotes)
+        let text = &cmd.text;
+        let segs = crate::bash::brace_groups(text);
         if segs.len() == vals.len() && !text.is_empty() {
             let mut parts: Vec<String> = Vec::new();
             let mut last = 0;
@@ -1475,8 +1462,30 @@ impl<'a> Gen<'a> {
             Some(x) => ("$true", self.text(x)),
             None => ("$false", "$null".to_string()),
         };
+        // v = per stage, the `NAME=value` pairs as a flat list (name, value, …), or $null
+        let v = if cmd.pipeline.iter().any(|s| !s.env.is_empty()) {
+            let per: Vec<String> = cmd
+                .pipeline
+                .iter()
+                .map(|s| {
+                    if s.env.is_empty() {
+                        return "$null".to_string();
+                    }
+                    let kv: Vec<String> = s.env.iter().map(|(n, w)| format!("{}, {}", lit(n), self.word(w).0)).collect();
+                    format!("@({})", kv.join(", "))
+                })
+                .collect();
+            // a single stage needs the `,` so the inner list is not flattened
+            if per.len() == 1 {
+                format!("; v = @(,{})", per[0])
+            } else {
+                format!("; v = @({})", per.join(", "))
+            }
+        } else {
+            String::new()
+        };
         format!(
-            "@{{ t = {}; s = {}; o = {}; oa = {}; e = {}; ea = {}; i = {}; e2o = {}; hd = {}; d = {} }}",
+            "@{{ t = {}; s = {}; o = {}; oa = {}; e = {}; ea = {}; i = {}; e2o = {}; hd = {}; d = {}{} }}",
             self.cmd_display(cmd),
             s,
             o,
@@ -1486,7 +1495,8 @@ impl<'a> Gen<'a> {
             i,
             e2o,
             hd,
-            d
+            d,
+            v
         )
     }
 

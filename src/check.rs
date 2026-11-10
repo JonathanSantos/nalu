@@ -311,6 +311,8 @@ pub enum THandler {
 #[derive(Clone, Debug)]
 pub struct TCmd {
     pub stages: Vec<Vec<TWord>>,
+    /// `NAME=value` before the program of each stage (same length as `stages`).
+    pub envs: Vec<Vec<(String, TWord)>>,
     /// Program position (first word) of each stage.
     pub prog_spans: Vec<Span>,
     pub redirects: Vec<TRedir>,
@@ -3085,7 +3087,27 @@ impl<'a> Checker<'a> {
     fn cmd(&mut self, c: &ast::CmdAst) -> TCmd {
         let mut stages = Vec::new();
         let mut prog_spans = Vec::new();
+        let mut envs = Vec::new();
         for st in &c.stages {
+            // `NAME=value` words before the program: variables for that program only
+            let mut env = Vec::new();
+            let mut st: &[ast::CmdWord] = st;
+            while let Some((name, value)) = st.first().and_then(env_assignment) {
+                if st.len() == 1 {
+                    self.errh(
+                        "E005",
+                        st[0].span,
+                        format!("`{}=…` needs a program after it", name),
+                        format!("`NAME=value program` sets a variable for that program; for the rest of the script use `env.set(\"{}\", …)`", name),
+                    );
+                    break;
+                }
+                if let Some(tw) = self.word_in(&value, false, true) {
+                    env.push((name, tw));
+                }
+                st = &st[1..];
+            }
+            envs.push(env);
             prog_spans.push(st.first().map(|w| w.span).unwrap_or(c.span));
             let mut words = Vec::new();
             for w in st {
@@ -3118,11 +3140,17 @@ impl<'a> Checker<'a> {
             }
             te
         });
-        TCmd { stages, prog_spans, redirects, stdin, text: c.text.clone(), span: c.span }
+        TCmd { stages, envs, prog_spans, redirects, stdin, text: c.text.clone(), span: c.span }
     }
 
     /// A command word. `allow_spread`: a lone `{list}` becomes several arguments.
     fn word(&mut self, w: &ast::CmdWord, allow_spread: bool) -> Option<TWord> {
+        self.word_in(w, allow_spread, false)
+    }
+
+    /// `env`: the word is the value of a `NAME=value` before the program. A secret is fine there:
+    /// the environment of a program, unlike its arguments, is not in the process list.
+    fn word_in(&mut self, w: &ast::CmdWord, allow_spread: bool, env: bool) -> Option<TWord> {
         if w.parts.iter().all(|p| matches!(p, ast::WordPart::Lit(_))) {
             let s: String = w.parts.iter().map(|p| if let ast::WordPart::Lit(t) = p { t.as_str() } else { "" }).collect();
             return Some(TWord::Lit(s));
@@ -3152,6 +3180,7 @@ impl<'a> Checker<'a> {
                         Ty::Duration => {
                             self.errh("E021", te.span, "a bare duration as a command argument", "write the number in the unit the program expects: `{d / 1s}`");
                         }
+                        Ty::Secret if env => {}
                         Ty::Secret => {
                             self.warn(
                                 "W011",
@@ -4339,6 +4368,25 @@ fn post_checks(p: &TProgram, diags: &mut Vec<Diag>) {
 // =================================================================================================
 // Tests
 // =================================================================================================
+
+/// `NAME=value` at the start of a command word: the name and the value as a word of its own.
+/// The name is a shell identifier (`[A-Za-z_][A-Za-z0-9_]*`).
+fn env_assignment(w: &ast::CmdWord) -> Option<(String, ast::CmdWord)> {
+    let ast::WordPart::Lit(first) = w.parts.first()? else { return None };
+    let eq = first.find('=')?;
+    let name = &first[..eq];
+    let mut cs = name.chars();
+    let c0 = cs.next()?;
+    if !(c0.is_ascii_alphabetic() || c0 == '_') || !cs.all(|c| c.is_ascii_alphanumeric() || c == '_') {
+        return None;
+    }
+    let mut parts = Vec::new();
+    if eq + 1 < first.len() {
+        parts.push(ast::WordPart::Lit(first[eq + 1..].to_string()));
+    }
+    parts.extend(w.parts[1..].iter().cloned());
+    Some((name.to_string(), ast::CmdWord { parts, span: w.span }))
+}
 
 #[cfg(test)]
 mod tests {
