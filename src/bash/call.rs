@@ -618,6 +618,7 @@ impl<'a> Gen<'a> {
             }
             "fs.chmod" => self.helper("__fs_chmod", &a, true, Val::Unit),
             "hash.sha256" => self.helper("__hash_sha256", &a, false, ret_w()),
+            "semver.compare" => self.helper("__semver_compare", &a, true, ret_w()),
             "encoding.base64_encode" => self.helper("__b64_enc", &a, false, ret_w()),
             "encoding.base64_decode" => self.helper("__b64_dec", &a, true, ret_w()),
             "regex.test" | "regex.find" | "regex.find_all" | "regex.groups" | "regex.replace" => {

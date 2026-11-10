@@ -115,6 +115,7 @@ that fails on purpose and an unhandled error; expected output in `tests/pacote/s
 | `system` | `sys.*`, `proc.exists`/`which` with `catch`, `dirs.*` |
 | `data` | `json`, `hash`, `archive` and `fs.chmod`: the same result on the three targets |
 | `regex` | `regex` and encoding: the same matches, groups and Base64 on every target |
+| `semver` | `semver.compare`: numbers by value, missing parts, `v` and `+build`, pre-releases, texts that are not versions |
 | `exit` | `exit(300)` → code 44 (`% 256`), `defer` runs |
 | `exit_zero` | `exit()` inside a loop → code 0 |
 | `native` | `native { bash: …, powershell: … }` |

@@ -1,0 +1,50 @@
+// semver.compare: numbers by value, missing parts are 0, `v` and `+build` ignored, pre-releases older.
+fn show(a: str, b: str) {
+    let r = semver.compare(a, b)
+    let sign = match r {
+        -1 => "<"
+        0  => "="
+        _  => ">"
+    }
+    print("{a} {sign} {b}")
+}
+
+show("1.9", "1.10")
+show("1.10.0", "1.9.9")
+show("1.2", "1.2.0")
+show("v2.0.0", "2")
+show("V1.0", "v1.0.0.0")
+show("1.0.0+build.5", "1.0.0+other")
+show("08", "8")
+show("1.0.0-rc.1", "1.0.0")
+show("1.0.0", "1.0.0-rc.1")
+show("1.0.0-alpha", "1.0.0-alpha.1")
+show("1.0.0-alpha.1", "1.0.0-alpha.beta")
+show("1.0.0-alpha.beta", "1.0.0-beta")
+show("1.0.0-beta.2", "1.0.0-beta.11")
+show("1.0.0-rc.1", "1.0.0-rc.1")
+show("1.0.0-Beta", "1.0.0-alpha")
+show("1.0.0-x-1", "1.0.0-x-1")
+show("999999999999999999", "1000000000000000000") catch {
+    print("too long")
+}
+
+// the usual use: is the installed tool new enough?
+let have = regex.find("git version 2.39.3 (Apple Git-146)", '\d+\.\d+\.\d+')
+if semver.compare(have, "2.30") >= 0 {
+    print("git {have} is new enough")
+}
+
+// what is not a version fails
+let bad = ["", "abc", "1..2", "1.2.", ".1", "1.x", "1.0-", "1.0-a..b", "1.0-a b", "latest", "-1", "1,2"]
+for b in bad {
+    let r = semver.compare(b, "1.0") catch -9
+    if r != -9 {
+        print("accepted: [{b}]")
+    }
+}
+let m = semver.compare("1.0", "nope") catch {
+    print(err.message)
+    0
+}
+print(m)

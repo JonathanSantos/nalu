@@ -359,3 +359,63 @@ function __B64Dec([string]$t) {
     try { return (New-Object System.Text.UTF8Encoding $false, $true).GetString($bytes) }
     catch { __Throw 'encoding: the decoded bytes are not UTF-8 text' 1 }
 }
+
+# @fn __SemverSplit
+# @needs __Throw
+# A version as its parts: c = the numbers, p = the pre-release ($null if none). Same rules as Bash.
+function __SemverSplit([string]$v) {
+    $s = $v
+    if ($s.Length -gt 0 -and ($s[0] -ceq 'v' -or $s[0] -ceq 'V')) { $s = $s.Substring(1) }
+    $i = $s.IndexOf('+')
+    if ($i -ge 0) { $s = $s.Substring(0, $i) }
+    $pre = $null
+    $i = $s.IndexOf('-')
+    if ($i -ge 0) { $pre = $s.Substring($i + 1); $s = $s.Substring(0, $i) }
+    $ok = $s -cmatch '\A[0-9]{1,18}(\.[0-9]{1,18})*\z'
+    if ($ok -and $null -ne $pre) {
+        $ok = $pre -cmatch '\A[0-9A-Za-z-]+(\.[0-9A-Za-z-]+)*\z'
+        if ($ok) { foreach ($x in $pre.Split('.')) { if ($x -cmatch '\A[0-9]{19,}\z') { $ok = $false } } }
+    }
+    if (-not $ok) { __Throw ("semver: '" + $v + "' is not a version") 1 }
+    $p = $null
+    if ($null -ne $pre) { $p = $pre.Split('.') }
+    return @{ c = $s.Split('.'); p = $p }
+}
+
+# @fn __SemverCompare
+# @needs __SemverSplit
+function __SemverCompare([string]$a, [string]$b) {
+    $x = __SemverSplit $a
+    $y = __SemverSplit $b
+    $n = [Math]::Max($x.c.Length, $y.c.Length)
+    for ($i = 0; $i -lt $n; $i++) {
+        $p = 0L; $q = 0L
+        if ($i -lt $x.c.Length) { $p = [long]::Parse($x.c[$i], [Globalization.CultureInfo]::InvariantCulture) }
+        if ($i -lt $y.c.Length) { $q = [long]::Parse($y.c[$i], [Globalization.CultureInfo]::InvariantCulture) }
+        if ($p -lt $q) { return -1L }
+        if ($p -gt $q) { return 1L }
+    }
+    # same numbers: a pre-release is older than the release; two pre-releases compare part by part
+    if ($null -eq $x.p -and $null -eq $y.p) { return 0L }
+    if ($null -eq $x.p) { return 1L }
+    if ($null -eq $y.p) { return -1L }
+    for ($i = 0; ; $i++) {
+        if ($i -ge $x.p.Length -and $i -ge $y.p.Length) { return 0L }
+        if ($i -ge $x.p.Length) { return -1L }
+        if ($i -ge $y.p.Length) { return 1L }
+        $s = [string]$x.p[$i]; $t = [string]$y.p[$i]
+        $sn = $s -cmatch '\A[0-9]+\z'; $tn = $t -cmatch '\A[0-9]+\z'
+        if ($sn -and $tn) {
+            $p = [long]::Parse($s, [Globalization.CultureInfo]::InvariantCulture)
+            $q = [long]::Parse($t, [Globalization.CultureInfo]::InvariantCulture)
+            if ($p -lt $q) { return -1L }
+            if ($p -gt $q) { return 1L }
+        } elseif ($sn) { return -1L }
+        elseif ($tn) { return 1L }
+        else {
+            $c = [string]::CompareOrdinal($s, $t)
+            if ($c -lt 0) { return -1L }
+            if ($c -gt 0) { return 1L }
+        }
+    }
+}

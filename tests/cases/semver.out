@@ -1,0 +1,20 @@
+1.9 < 1.10
+1.10.0 > 1.9.9
+1.2 = 1.2.0
+v2.0.0 = 2
+V1.0 = v1.0.0.0
+1.0.0+build.5 = 1.0.0+other
+08 = 8
+1.0.0-rc.1 < 1.0.0
+1.0.0 > 1.0.0-rc.1
+1.0.0-alpha < 1.0.0-alpha.1
+1.0.0-alpha.1 < 1.0.0-alpha.beta
+1.0.0-alpha.beta < 1.0.0-beta
+1.0.0-beta.2 < 1.0.0-beta.11
+1.0.0-rc.1 = 1.0.0-rc.1
+1.0.0-Beta < 1.0.0-alpha
+1.0.0-x-1 = 1.0.0-x-1
+too long
+git 2.39.3 is new enough
+semver: 'nope' is not a version
+0

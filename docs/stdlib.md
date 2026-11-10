@@ -4,7 +4,7 @@
 
 Every module is always available: there are no imports. Each entry says whether it **can fail** (handle it with `catch`, or let the failure propagate) and whether it **writes** (with `--dry-run` it is only shown, not run). `nalu doc <name>` prints any entry in the terminal.
 
-**Modules:** [`archive`](#module-archive) · [`dirs`](#module-dirs) · [`encoding`](#module-encoding) · [`env`](#module-env) · [`fs`](#module-fs) · [`hash`](#module-hash) · [`http`](#module-http) · [`json`](#module-json) · [`log`](#module-log) · [`math`](#module-math) · [`path`](#module-path) · [`pkg`](#module-pkg) · [`proc`](#module-proc) · [`regex`](#module-regex) · [`sys`](#module-sys) · [`time`](#module-time) · [`ui`](#module-ui)  
+**Modules:** [`archive`](#module-archive) · [`dirs`](#module-dirs) · [`encoding`](#module-encoding) · [`env`](#module-env) · [`fs`](#module-fs) · [`hash`](#module-hash) · [`http`](#module-http) · [`json`](#module-json) · [`log`](#module-log) · [`math`](#module-math) · [`path`](#module-path) · [`pkg`](#module-pkg) · [`proc`](#module-proc) · [`regex`](#module-regex) · [`semver`](#module-semver) · [`sys`](#module-sys) · [`time`](#module-time) · [`ui`](#module-ui)  
 **Types:** [`str`](#type-str) · [`path`](#type-path) · [`list`](#type-list) · [`map`](#type-map) · [`int`](#type-int) · [`bool`](#type-bool) · [`duration`](#type-duration) · [`secret`](#type-secret) · [`enum`](#type-enum) · [`error`](#type-error)  
 **Also:** [built-ins](#built-ins) · [keywords and constants](#keywords-and-constants)
 
@@ -139,6 +139,12 @@ Regular expressions in one portable syntax, checked by the compiler and identica
 - `regex.find_all(text: str, pattern: str) -> []str`: Every match, left to right; none gives an empty list. The pattern must have a single way to match and can't match empty text.
 - `regex.groups(text: str, pattern: str) -> []str` (can fail): The groups `( … )` of the first match, in order (a group that took no part is ""); fails if there is no match.
 - `regex.replace(text: str, pattern: str, new: str) -> str`: Replaces every match with `new`, taken literally (no `$1`). The pattern must have a single way to match and can't match empty text.
+
+## Module semver
+
+Version numbers such as 1.4.0 and v2.0.0-rc.1.
+
+- `semver.compare(a: str, b: str) -> int` (can fail): Compares two versions: -1 if `a` is older, 0 if they are the same, 1 if `a` is newer. Numbers separated by dots, compared as numbers (`1.10` is newer than `1.9`; `1.2` equals `1.2.0`); a leading `v` and anything after `+` are ignored; a pre-release (`1.0.0-rc.1`) is older than its release. Fails if a text is not a version.
 
 ## Module sys
 

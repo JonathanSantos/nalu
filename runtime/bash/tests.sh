@@ -309,6 +309,15 @@ no __b64_dec 'length' __b64_dec 'aGkxa'
 no __b64_dec 'NUL byte' __b64_dec 'AAE='; eq __b64_dec 'not text' "$__err_msg" 'encoding: the decoded bytes are not UTF-8 text'
 # UTF-8 is validated with `iconv`; without it (a bare Alpine), only the NUL check applies
 if command -v iconv >/dev/null 2>&1; then no __b64_dec 'invalid utf-8' __b64_dec '/w=='; fi
+# semver
+ok __semver_split 'numbers and pre-release' __semver_split 'v1.20.3-rc.1+b7'; eq __semver_split 'parts' "${__sv_c[*]}|$__sv_p" '1 20 3|rc.1'
+no __semver_split 'empty part' __semver_split '1..2'
+ret __semver_compare 'by value' '-1' __semver_compare '1.9' '1.10'
+ret __semver_compare 'missing parts are 0' '0' __semver_compare 'v1.2' '1.2.0'
+ret __semver_compare 'leading zeros' '1' __semver_compare '1.010' '1.9'
+ret __semver_compare 'pre-release is older' '-1' __semver_compare '2.0.0-rc.1' '2.0.0'
+ret __semver_compare 'pre-release parts' '1' __semver_compare '1.0.0-beta.11' '1.0.0-beta.2'
+no __semver_compare 'not a version' __semver_compare 'latest' '1.0'; eq __semver_compare 'message' "$__err_msg" "semver: 'latest' is not a version"
 mkdir -p "$tmp/arq/p" && printf 'x' > "$tmp/arq/p/a.txt"
 ok __archive_tar_create 'creates' __archive_tar_create "$tmp/arq/p.tgz" "$tmp/arq/p"
 ok __archive_tar_extract 'extracts' __archive_tar_extract "$tmp/arq/p.tgz" "$tmp/arq/x"

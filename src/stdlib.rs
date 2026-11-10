@@ -137,6 +137,8 @@ pub static STDLIB: &[StdFn] = &[
     f("hash", "sha256_file", &[p("p", "path")], "str", true, false, true, "The SHA-256 of the file, in lowercase hex; fails if it does not exist."),
     f("encoding", "base64_encode", &[p("text", "str")], "str", false, false, true, "The Base64 of the text's UTF-8 bytes: standard alphabet, `=` padding, one line."),
     f("encoding", "base64_decode", &[p("text", "str")], "str", true, false, true, "Decodes Base64 into text. Spaces and line breaks are ignored, the URL-safe alphabet (`-` `_`) and missing `=` padding are accepted; fails if the text isn't Base64 or the bytes aren't UTF-8 text."),
+    // semver
+    f("semver", "compare", &[p("a", "str"), p("b", "str")], "int", true, false, true, "Compares two versions: -1 if `a` is older, 0 if they are the same, 1 if `a` is newer. Numbers separated by dots, compared as numbers (`1.10` is newer than `1.9`; `1.2` equals `1.2.0`); a leading `v` and anything after `+` are ignored; a pre-release (`1.0.0-rc.1`) is older than its release. Fails if a text is not a version."),
     // archive
     f("archive", "tar_create", &[p("file", "path"), p("dir", "path")], "unit", true, true, true, "Creates a .tar.gz with the folder inside (the folder's name is the archive's root)."),
     f("archive", "tar_extract", &[p("file", "path"), p("to", "path")], "unit", true, true, true, "Extracts a .tar.gz into `to`, creating it."),
@@ -289,6 +291,7 @@ pub static MODULES: &[(&str, &str)] = &[
     ("pkg", "System package managers. Planned; the compiler refuses it for now (E090)."),
     ("proc", "Programs on PATH."),
     ("regex", "Regular expressions in one portable syntax, checked by the compiler and identical on every target."),
+    ("semver", "Version numbers such as 1.4.0 and v2.0.0-rc.1."),
     ("sys", "Architecture, user, admin and CI checks, the current folder."),
     ("time", "Timestamps, durations, formatting and waiting."),
     ("ui", "Questions for the user that fall back to a default without a terminal."),

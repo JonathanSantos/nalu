@@ -497,3 +497,79 @@ __b64_dec() {
   __ret=${__ret%.}
   rm -f "$__h_f"
 }
+
+# @fn __semver_split
+# @target all
+# A version as its parts: __sv_c = the numbers (array), __sv_p = the pre-release ('' if none).
+# Returns 1 if the text is not a version (same rules as Windows).
+__semver_split() {
+  local __h_v=$1 __h_core __h_x __h_has=0 IFS=.
+  __h_v=${__h_v#[vV]}
+  __h_v=${__h_v%%+*}
+  __sv_p=''
+  __h_core=$__h_v
+  case $__h_v in
+    *-*) __h_has=1; __sv_p=${__h_v#*-}; __h_core=${__h_v%%-*} ;;
+  esac
+  case $__h_core in
+    '' | *[!0-9.]* | .* | *. | *..*) return 1 ;;
+  esac
+  __sv_c=($__h_core)
+  for __h_x in "${__sv_c[@]}"; do (( ${#__h_x} <= 18 )) || return 1; done
+  if (( __h_has )); then
+    case $__sv_p in
+      '' | *[!0-9A-Za-z.-]* | .* | *. | *..*) return 1 ;;
+    esac
+    for __h_x in $__sv_p; do
+      if [[ $__h_x != *[!0-9]* ]] && (( ${#__h_x} > 18 )); then return 1; fi
+    done
+  fi
+  return 0
+}
+
+# @fn __semver_compare
+# @needs __err __semver_split __str_lt
+# @target all
+__semver_compare() {
+  local __h_i __h_n __h_x __h_y __h_ap IFS=.
+  local -a __h_ac __h_pa __h_pb
+  __semver_split "$1" || { __err "semver: '$1' is not a version"; return; }
+  __h_ac=("${__sv_c[@]}")
+  __h_ap=$__sv_p
+  __semver_split "$2" || { __err "semver: '$2' is not a version"; return; }
+  __h_n=${#__h_ac[@]}
+  if (( ${#__sv_c[@]} > __h_n )); then __h_n=${#__sv_c[@]}; fi
+  for (( __h_i = 0; __h_i < __h_n; __h_i++ )); do
+    __h_x=${__h_ac[__h_i]:-0}
+    __h_y=${__sv_c[__h_i]:-0}
+    if (( 10#$__h_x < 10#$__h_y )); then __ret=-1; return 0; fi
+    if (( 10#$__h_x > 10#$__h_y )); then __ret=1; return 0; fi
+  done
+  # same numbers: a pre-release is older than the release; two pre-releases compare part by part
+  __ret=0
+  if [[ -z $__h_ap && -z $__sv_p ]]; then return 0; fi
+  if [[ -z $__h_ap ]]; then __ret=1; return 0; fi
+  if [[ -z $__sv_p ]]; then __ret=-1; return 0; fi
+  __h_pa=($__h_ap)
+  __h_pb=($__sv_p)
+  for (( __h_i = 0; ; __h_i++ )); do
+    if (( __h_i >= ${#__h_pa[@]} && __h_i >= ${#__h_pb[@]} )); then return 0; fi
+    if (( __h_i >= ${#__h_pa[@]} )); then __ret=-1; return 0; fi
+    if (( __h_i >= ${#__h_pb[@]} )); then __ret=1; return 0; fi
+    __h_x=${__h_pa[__h_i]}
+    __h_y=${__h_pb[__h_i]}
+    if [[ $__h_x != *[!0-9]* && $__h_y != *[!0-9]* ]]; then
+      # numbers compare as numbers
+      if (( 10#$__h_x < 10#$__h_y )); then __ret=-1; return 0; fi
+      if (( 10#$__h_x > 10#$__h_y )); then __ret=1; return 0; fi
+    elif [[ $__h_x != *[!0-9]* ]]; then
+      __ret=-1; return 0   # a number is older than text
+    elif [[ $__h_y != *[!0-9]* ]]; then
+      __ret=1; return 0
+    elif [[ $__h_x != "$__h_y" ]]; then
+      # text compares by code point (ordinal), as everywhere else
+      if __str_lt "$__h_x" "$__h_y"; then __ret=-1; else __ret=1; fi
+      return 0
+    fi
+  done
+}

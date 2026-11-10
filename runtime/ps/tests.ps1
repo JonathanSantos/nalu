@@ -158,6 +158,11 @@ foreach ($bad in @('+5', '4x', '', '1.5', '9223372036854775808')) {
     Check "to_int refuses '$bad'" $ok $true
 }
 Check 'chars' ((__Cps 'a👍b') -join '|') 'a|👍|b'
+Check 'semver by value' (__SemverCompare '1.9' '1.10') (-1L)
+Check 'semver zeros' (__SemverCompare 'v1.2' '1.2.0') 0L
+Check 'semver pre' (__SemverCompare '2.0.0' '2.0.0-rc.1') 1L
+Check 'semver pre parts' (__SemverCompare '1.0.0-beta.2' '1.0.0-beta.11') (-1L)
+Check 'semver invalid' (Fails { __SemverCompare 'latest' '1.0' }) $true
 $lc = __ListConcat (L 1 2) (L 3)
 Check 'concat' ($lc -join ',') '1,2,3'
 Check 'concat empty' ((__ListConcat (L) (L)).Count) 0

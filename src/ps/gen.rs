@@ -1075,6 +1075,7 @@ impl<'a> Gen<'a> {
             ("http", "post") => V(format!("(__Http {} {} 'post' '' {} {} {} {})", a0, a3, a4, a5, a1, a2)),
             ("fs", "chmod") => S(format!("__FsChmod {} {}", a0, a1)),
             ("hash", "sha256") => V(format!("(__HashSha256 {})", a0)),
+            ("semver", "compare") => V(format!("(__SemverCompare {} {})", a0, a1)),
             ("encoding", "base64_encode") => V(format!("(__B64Enc {})", a0)),
             ("encoding", "base64_decode") => V(format!("(__B64Dec {})", a0)),
             ("regex", _) => {
