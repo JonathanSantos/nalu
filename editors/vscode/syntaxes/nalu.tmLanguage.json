@@ -228,7 +228,7 @@
     "builtins": {
       "patterns": [
         {
-          "match": "(?<![\\w.])(env|fs|path|dirs|sys|proc|time|log|ui|math|http|regex|hash|encoding|archive|pkg|json)(\\.)([a-z_][A-Za-z0-9_]*)",
+          "match": "(?<![\\w.])(env|fs|path|dirs|sys|proc|time|log|ui|math|http|regex|hash|encoding|archive|pkg|json|semver)(\\.)([a-z_][A-Za-z0-9_]*)",
           "captures": {
             "1": { "name": "entity.name.namespace.nalu" },
             "2": { "name": "punctuation.accessor.nalu" },

@@ -313,24 +313,24 @@ log.info("all {tasks.len()} checks passed")
 **Goal:** make sure a tool is installed, using each system's package manager.
 
 ```nalu
-// install_git.nalu: installs git with the system's package manager.
+// install_tools.nalu: installs git and jq with the system's package manager.
 
-if proc.exists("git") {
-    log.info("git is already installed")
-    exit(0)
+if !proc.exists("git") {
+    // the package is called `git` everywhere except in winget
+    let name = if pkg.manager() == "winget" { "Git.Git" } else { "git" }
+    pkg.install([name])
 }
-
-match os {
-    "linux"   => $ sudo apt-get install -y git
-    "macos"   => $ brew install git
-    "windows" => $ winget install --id Git.Git --exact --source winget
+if !proc.exists("jq") {
+    pkg.install([if pkg.manager() == "winget" { "jqlang.jq" } else { "jq" }])
 }
-log.info("git is installed")
+$ git --version
+$ jq --version
 ```
 
-- `match os` with the three systems keeps only one arm in each script. `nalu check` warns (`W010`) when a script calls a program that does not exist on its system, such as `grep` on Windows, which is how you know to put it inside `if os != "windows"`.
-- Before running its first line, a script checks that every program it calls by name exists, including ones inside an `if`. The macOS script stops with `error: this script needs: brew` when Homebrew is missing, even if git is already installed.
-- The Linux arm assumes `apt` (Debian, Ubuntu). A portable `pkg.install` is planned; see [the standard library](stdlib.md#module-pkg).
+- `pkg.manager()` names the manager found on the machine: `apt-get`, `dnf`, `yum`, `pacman`, `zypper` or `apk` on Linux, `brew` on macOS, `winget`, `choco` or `scoop` on Windows, and `""` when there is none.
+- `pkg.install` answers yes to the manager's questions and, on Linux, runs it with `sudo` when the script isn't root. Package names are the manager's own, so pick them by `pkg.manager()` where they differ.
+- A script normally refuses to start when a program it calls is missing (`error: this script needs: jq`). A program the script asks about with `proc.exists` is the exception, so the two commands at the end run after the install.
+- With `--dry-run`, the script shows `[dry-run] pkg.install git` and installs nothing.
 
 ## Require a minimum version of a tool
 
@@ -339,23 +339,17 @@ log.info("git is installed")
 ```nalu
 // need_git.nalu: requires git 2.30 or newer.
 
-fn version_of(text: str) -> []int {
-    let parts = regex.groups(text, '(\d+)\.(\d+)') catch fail "no version in: {text}"
-    return parts.map(p => p.to_int() catch 0)
+let need = "2.30"
+let have = regex.find($(git --version), '\d+\.\d+\.\d+') catch fail "no version in the output of `git --version`"
+if semver.compare(have, need) < 0 {
+    fail "git {have} is too old; install {need} or newer"
 }
-
-let have = version_of($(git --version))
-let need = [2, 30]
-let too_old = have[0] < need[0] || (have[0] == need[0] && have[1] < need[1])
-if too_old {
-    fail "git {have.join(".")} is too old; install {need.join(".")} or newer"
-}
-log.info("git {have.join(".")} is fine")
+log.info("git {have} is fine")
 ```
 
-- `regex.groups` returns what each `( … )` matched; it fails when nothing matches, and `catch fail` turns that into a message that shows the text.
-- The pattern is written in single quotes, so `\d` reaches the regex as it is. The compiler checks it and translates it for Bash and for PowerShell, so it behaves the same on every system.
-- `git --version` prints `git version 2.43.0` on Linux and macOS and `git version 2.43.0.windows.1` on Windows; the pattern takes the first two numbers either way.
+- `semver.compare(a, b)` gives -1, 0 or 1. It compares the numbers as numbers, so `2.9` is older than `2.30`, and a missing part counts as 0 (`2.30` equals `2.30.0`). A leading `v` is ignored and a pre-release such as `1.0.0-rc.1` is older than `1.0.0`.
+- `git --version` prints `git version 2.43.0` on Linux and macOS and `git version 2.43.0.windows.1` on Windows; `regex.find` takes the first three numbers either way. The pattern is written in single quotes, so `\d` reaches the regex as it is.
+- A text that isn't a version makes `semver.compare` fail, like any other failure: here the script would stop with `semver: '…' is not a version`.
 
 ## Delete old files, after asking
 

@@ -167,13 +167,14 @@ Sem `import`: todo módulo está sempre disponível, com o mesmo comportamento n
 |---|---|
 | `fs` · `path` · `dirs` | arquivos e pastas, caminhos com o separador certo, pasta do usuário e do app |
 | `env` · `sys` · `proc` | variáveis de ambiente, arquitetura, administrador e CI, `which` |
-| `http` | `get`, `post`, `status` e `download`, com cabeçalhos e um `bearer: secret` que nunca aparece em argv |
+| `http` | `get`, `post`, `request` (PUT, PATCH, DELETE), `status` e `download`, com cabeçalhos e um `bearer: secret` que nunca aparece em argv |
 | `json` | `get`, `get_list`, `keys`, `has` e `quote`, interpretado pelo próprio script (sem `jq`) |
 | `regex` · `encoding` | uma sintaxe de regex, conferida pelo compilador e igual em todos os alvos; Base64 |
 | `hash` · `archive` | SHA-256 de texto e de arquivo; `.tar.gz` e `.zip` |
+| `pkg` · `semver` | instalar com o gerenciador de pacotes do sistema (`apt-get`, `brew`, `winget`…); comparar versões |
 | `time` · `log` · `ui` | instantes e durações, logs por nível, perguntas que têm resposta padrão sem terminal |
 
-Lista completa: [docs/stdlib.md](docs/stdlib.md), gerada pelo próprio compilador (`nalu doc --all`). Ainda planejado: `pkg`.
+Lista completa: [docs/stdlib.md](docs/stdlib.md), gerada pelo próprio compilador (`nalu doc --all`).
 
 ## Ferramentas
 
@@ -184,7 +185,7 @@ Lista completa: [docs/stdlib.md](docs/stdlib.md), gerada pelo próprio compilado
 
 ## Estado
 
-Nalu 1.1. O compilador, os dois backends, a biblioteca acima, o formatador e as ferramentas de editor estão prontos, e a suíte de testes roda cada caso no Bash 3.2, no Bash 5 e no PowerShell 7. As mensagens do compilador e tudo o que os scripts gerados imprimem são em inglês e iguais nos três alvos, e a documentação em [`docs/`](docs/README.md) é em inglês. A 1.1 trouxe `regex` e `encoding`, `match` com guardas e padrões de struct, listas de listas, mapas de listas, structs e listas de structs dentro de struct, scripts divididos em vários arquivos com `use` e `parallel` de verdade no Windows. Ainda não tem: números com vírgula, listas de mapas e o módulo `pkg`; o [changelog](CHANGELOG.md) tem os detalhes.
+Nalu 1.2. O compilador, os dois backends, a biblioteca acima, o formatador e as ferramentas de editor estão prontos, e a suíte de testes roda cada caso no Bash 3.2, no Bash 5 e no PowerShell 7. As mensagens do compilador e tudo o que os scripts gerados imprimem são em inglês e iguais nos três alvos, e a documentação em [`docs/`](docs/README.md) é em inglês. A 1.1 trouxe `regex` e `encoding`, `match` com guardas e padrões de struct, listas de listas, mapas de listas, structs e listas de structs dentro de struct, scripts divididos em vários arquivos com `use` e `parallel` de verdade no Windows. A 1.2 trouxe `NOME=valor` antes de um comando, os módulos `pkg` e `semver`, `http.request`, `archive.zip_create`, `list.concat` e `err` no valor depois de `catch`. Ainda não tem: números com vírgula e listas de mapas; o [changelog](CHANGELOG.md) tem os detalhes.
 
 ## Saiba mais
 

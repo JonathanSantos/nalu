@@ -21,13 +21,14 @@ Without the tools, run `nalu check file.nalu`, `nalu fmt file.nalu` and `nalu do
 
 - **Failures propagate.** Anything that can fail (a `$` command, `fs.read`, `env.get`, `.to_int()`, `xs[i]`, `m[k]`, `.first()`, any function of yours that calls one of these) stops the script, or makes the enclosing function fail, unless it is handled with `catch`. There is no `?`, no `throws`, no `null`, no exceptions to declare.
 - **`catch` handles a failure:**
-  - `let text = fs.read(p) catch ""` — a default value
+  - `let text = fs.read(p) catch ""` — a default value (it can use `err`: `catch err.code`, `catch "failed: {err}"`)
   - `let port = env.get("PORT") catch fail "set PORT"` — fail with a better message (`{err}` is available)
   - `$ git pull catch ignore` — keep going
   - `catch { … }` — a block that can use `err` (`err.message`, `err.code`); in a value position its last line is the value
   - `try { … } catch …` — one handler for several lines
 - **Logic:** `||`, `&&` and `!`. There is no `or`, `and` or `not`.
 - **Commands.** A line that starts with `$ ` runs a program: `$ docker build -t {image}:{tag} .`. Words are literal (no globbing, no `$VAR`); `{x}` is exactly one argument, and a list `{xs}` alone becomes several. `$(git rev-parse --short HEAD)` captures stdout as `str`. `secret | $ docker login --password-stdin` sends a value to stdin. `if $ git diff --quiet { … }` uses the exit code as a condition. An unquoted ` catch ` ends the command.
+- **A variable for one program** goes before it, as in a shell: `$ CGO_ENABLED=0 go build`, `$ GH_TOKEN={token} gh release create v1`. It reaches only that program; a `secret` is fine there. For the rest of the script use `env.set`.
 - **Text.** `"hello {name}"` interpolates any expression in `{ }`; `{{` and `}}` are literal braces. Interpolation is the only way to turn a value into text (there is no `.to_str()`). `'raw'` has no interpolation or escapes (use it for fixed JSON). `"""…"""` is multi-line.
 - **Declarations.** `let` is immutable, `var` is mutable; there is no `const`, `++` or `--`. `fn name(a: int, b: str = "x") -> str { … }`; no `function`, `def` or `func`. No semicolons. Names are snake_case, types PascalCase.
 - **Types are written like Go:** `[]str`, `[]int`, `[][]str`, `map[str]int`, `map[str][]str`. A struct field can be another struct. Nested values change in place: `grid[i][j] = v`, `svcs[0].port = 80`, `groups[k].push(x)`, `let x = rows[0].pop()`.
@@ -87,14 +88,14 @@ Every generated script takes `--help`, `--dry-run` (commands and writes are only
 ## Standard library (main calls; "!" = can fail)
 
 - built-ins: `print(a, …)`, `fmt(template, a, …)` (for templates that come from data), `exit(code)`, `secret(s)`, `embed("file")`
-- `env`: `get(name)!`, `has(name)`, `set(name, value)`
+- `env`: `get(name)!`, `has(name)`, `set(name, value)`, `unset(name)`
 - `fs`: `exists`, `is_dir`, `is_file`, `size!`, `modified!`, `read(p)!`, `write(p, text)!`, `append(p, text)!`, `rm(p)!`, `mkdir(p)!`, `copy(from, to)!`, `move(from, to)!`, `ls(dir)!`, `walk(dir)!`, `glob(pattern)`, `temp_dir()!`, `temp_file()!`, `replace(p, from, to)!`, `chmod(p, mode)!`
 - `path` values: `.name`, `.stem`, `.ext`, `.parent` (no parentheses); `a / "b"`; `path.abs(p)`
 - `dirs`: `home()`, `temp()`, `cwd()`, `config(app)`, `cache(app)`, `data(app)` · `sys`: `arch()`, `user()`, `is_admin()`, `is_ci()`, `cpus()`, `cd(dir)!` · `proc`: `exists(cmd)`, `which(cmd)!`
 - `time`: `now()`, `since(t)`, `format(fmt, t)`, `sleep(d)` · `log`: `info`, `warn`, `error`, `debug` · `ui`: `confirm(q)`, `ask(q, fallback)`, `password(q)!`, `choose(q, options)!`
-- `http`: `get(url, timeout, headers, bearer)!`, `post(url, body, …)!`, `status(url, …)!`, `download(url, to, …)!` · `json`: `get(text, "a.b[0]")!`, `get_list`, `keys`, `has`, `quote` · `hash`: `sha256(text)`, `sha256_file(p)!` · `archive`: `tar_create`, `tar_extract`, `zip_extract`
+- `http`: `get(url, timeout, headers, bearer)!`, `post(url, body, …)!`, `request("PUT", url, body, …)!` (POST, PUT, PATCH, DELETE), `status(url, …)!`, `download(url, to, …)!` · `json`: `get(text, "a.b[0]")!`, `get_list`, `keys`, `has`, `quote` · `hash`: `sha256(text)`, `sha256_file(p)!` · `archive`: `tar_create`, `tar_extract`, `zip_extract`
 - `regex` (the pattern is fixed text in single quotes, checked by the compiler): `test(text, pattern)`, `find(text, pattern)!`, `find_all`, `groups(text, pattern)!`, `replace(text, pattern, new)`; `find`/`find_all`/`groups`/`replace` need a pattern with one way to match (`[^=]*=`, not `.*=`) · `encoding`: `base64_encode(text)`, `base64_decode(text)!`
 - `str`: `len()`, `trim()`, `upper()`, `lower()`, `contains(s)`, `starts_with(s)`, `split(sep)`, `lines()`, `replace(a, b)`, `slice(a, b)`, `to_int()!`, …
-- lists: `len()`, `push(x)`, `pop()!`, `filter(x => …)`, `map(x => …)`, `find(…)!`, `first()!`, `last()!`, `contains(x)`, `join(sep)`, `sort()`, `sort_by(…)`, `unique()`, `slice(a, b)`
+- lists: `len()`, `push(x)`, `pop()!`, `filter(x => …)`, `map(x => …)`, `find(…)!`, `first()!`, `last()!`, `contains(x)`, `join(sep)`, `sort()`, `sort_by(…)`, `unique()`, `slice(a, b)`, `concat(ys)` (lists are not added with `+`)
 - maps: `m[k]!`, `m[k] = v`, `has(k)`, `remove(k)`, `keys()`, `values()`, `len()`
-- Planned, refused by the compiler for now: `pkg`.
+- `pkg`: `manager()` (`apt-get`, `brew`, `winget`… or `""`), `install(names)!` · `semver`: `compare(a, b)!` → -1, 0, 1 (`semver.compare(have, "2.30") >= 0`)

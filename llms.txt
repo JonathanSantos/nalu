@@ -5,9 +5,9 @@
 ## Rules that cause the most mistakes (read first)
 
 - Nalu is not Rust, Swift, Go or JavaScript. There is one way to do each thing, and the compiler names the right one when you use another.
-- Interpolation is `{expr}` inside double quotes. `{{` and `}}` are literal braces. Fixed JSON: single quotes `'{"a": 1}'` (no interpolation, no escapes). Interpolation is the only way to turn a value into text.
+- Interpolation is `{expr}` inside double quotes. `{{` and `}}` are literal braces. Escapes: `\n \t \r \" \\ \{ \} \u{1b}`. Fixed JSON: single quotes `'{"a": 1}'` (no interpolation, no escapes). Interpolation is the only way to turn a value into text.
 - There is no `try` per line, `throws`, `?`, `null` or exceptions: EVERY operation that can fail, without `catch`, stops the script (or makes the enclosing function fail). Handle failures with `catch`.
-- Logic is `||`, `&&` and `!`. There is no `or`, `and` or `not`.
+- Logic is `||`, `&&` and `!`. There is no `or`, `and` or `not`, and no `in` operator: `xs.contains(x)`, `m.has(k)`. Lists are joined with `xs.concat(ys)`, not `+`.
 - `let` is immutable; `var` is mutable. No `const`, no `++`/`--`.
 - Functions: `fn name(a: int, b: str = "x") -> str { … }`. No `function`, `def` or `func`.
 - Types like Go: `[]str`, `[]int`, `[][]str`, `map[str]int`, `map[str][]str`. A struct field can be another struct.
@@ -16,7 +16,7 @@
 - `match x { … }` has one arm per line, tried in order: `"a" | "b" => …`, `200..=299 => …`, `n if n >= 500 => "error {n}"` (a name takes the value; `if` is a guard), `Service { port: 443 } => …` (struct pattern), `_ => …`. Enum cases are written without the type name inside `match`; a `match` on an enum must cover every case or end with `_`.
 - snake_case names, PascalCase types. No `import`: the standard library is always available. To split a script, `use "lib.nalu"` at the start of a file brings in that file's `fn`, `struct`, `enum` and `test` declarations (still one script per target).
 - `slice` works like JavaScript (negative counts from the end, `end` optional). `xs[i]` out of range FAILS (use `xs[i] catch default`).
-- A command is a line that starts with `$ `. Unquoted words are literal (no globbing, no `$VAR`). `{x}` becomes ONE argument; a list `{xs}` alone becomes several. An unquoted ` catch ` ends the command.
+- A command is a line that starts with `$ `. Unquoted words are literal (no globbing, no `$VAR`). `{x}` becomes ONE argument; a list `{xs}` alone becomes several. An unquoted ` catch ` ends the command. `NAME=value` words before the program set environment variables for that program only (`$ CGO_ENABLED=0 go build`; a secret is fine there: `$ GH_TOKEN={token} gh …`).
 - Maps: `m[k]` reads (can fail), `m[k] = v` writes. Empty checks: `s == ""`, `xs.len() == 0`. Nested values change in place: `grid[i][j] = v`, `svcs[0].port = 80`, `groups[k].push(x)`, `let x = rows[0].pop()`.
 - Regex patterns are fixed text in single quotes: `regex.find(s, 'v\d+\.\d+')`. `find`/`find_all`/`groups`/`replace` need patterns with one way to match (`[^=]*=` instead of `.*=`).
 - Paths: `.name`, `.stem`, `.ext`, `.parent` only look at the text and never fail; the disk is `fs.exists(p)`, `fs.is_dir(p)`, `fs.size(p)`, `fs.modified(p)`; join with `/`.
@@ -33,7 +33,7 @@ fn load(p: path) -> str {
     return fs.read(p)  // if it fails, load fails (at the top level, the script stops)
 }
 
-let optional = fs.read("a.txt") catch ""          // default value
+let optional = fs.read("a.txt") catch ""          // default value (it can use err: `catch err.code`)
 let port = env.get("PORT") catch fail "set PORT"  // fail with another message ({err} available)
 $ git pull catch ignore                           // keep going (only without a value)
 let n = "42".to_int() catch {
@@ -113,7 +113,7 @@ Tests: `test "name" { … }` blocks with `assert cond` and `assert_fails(call())
 ## Standard library (signatures; "!" = can fail)
 
 - built-ins: `print(a, …)`, `exit(code = 0)`, `fail`, `fmt("{} {}", a, b)` (templates that come from data), `secret(s)`, `embed("file")`, `os`, `dry_run`, `args: []str`.
-- env: `get(name)!`, `has(name)`, `set(name, value)`.
+- env: `get(name)!`, `has(name)`, `set(name, value)`, `unset(name)`.
 - fs: `exists(p)`, `is_dir(p)`, `is_file(p)`, `size(p)!`, `modified(p)!`, `read(p)!`, `write(p, text)!`, `append(p, text)!`, `rm(p)!`, `mkdir(p)!` (creates parents), `copy(from, to)!`, `move(from, to)!`, `ls(dir)!`, `walk(dir)!`, `glob(pattern)`, `temp_dir()!`, `temp_file()!`, `replace(p, from, to)!`, `chmod(p, mode)!` ("755", "+x"; no-op on Windows).
 - path: `abs(p)`; properties `p.name`, `p.stem`, `p.ext`, `p.parent`; `a / "b"` joins.
 - dirs: `home()`, `temp()`, `cwd()`, `config(app)`, `cache(app)`, `data(app)`.
@@ -123,20 +123,21 @@ Tests: `test "name" { … }` blocks with `assert cond` and `assert_fails(call())
 - log: `info`, `warn`, `error`, `debug` (stderr; debug only with --verbose).
 - ui: `confirm(q)`, `ask(q, fallback = "")`, `password(q)!` → secret, `choose(q, options)!`.
 - math: `min(a, b)`, `max(a, b)`, `abs(n)`.
-- http: `get(url, timeout = 30s, headers: []str = [], bearer: secret = "")!`, `post(url, body, content_type = "application/json", timeout, headers, bearer)!`, `status(url, timeout, headers, bearer)!` → int, `download(url, to, headers, bearer)!`. Headers are "Name: value".
+- http: `get(url, timeout = 30s, headers: []str = [], bearer: secret = "")!`, `post(url, body, content_type = "application/json", timeout, headers, bearer)!`, `request(method, url, body = "", content_type, timeout, headers, bearer)!` (method: "POST", "PUT", "PATCH" or "DELETE"), `status(url, timeout, headers, bearer)!` → int, `download(url, to, headers, bearer)!`. Headers are "Name: value".
 - json: `get(text, path)!` (text without quotes; numbers/lists/objects as JSON text; null fails), `get_list(text, path)!`, `keys(text, path)!`, `has(text, path)`, `quote(text)` (a JSON string with quotes). path: "a.b.0" or "a.b[0]"; "" is the root.
 - hash: `sha256(text)`, `sha256_file(p)!`.
 - regex (pattern = fixed text): `test(text, pattern)`, `find(text, pattern)!`, `find_all(text, pattern)`, `groups(text, pattern)!` → []str, `replace(text, pattern, new)` (`new` literal). Syntax: `. [a-z] [^,] \d \w \s * + ? {2,5} ( ) | ^ $`, `(?i)` at the start.
 - encoding: `base64_encode(text)`, `base64_decode(text)!`.
-- archive: `tar_create(file, dir)!`, `tar_extract(file, to)!`, `zip_extract(file, to)!`.
+- archive: `tar_create(file, dir)!`, `tar_extract(file, to)!`, `zip_create(file, dir)!`, `zip_extract(file, to)!`.
+- pkg: `manager()` ("apt-get", "dnf", "yum", "pacman", "zypper", "apk", "brew", "winget", "choco", "scoop" or ""), `install(names: []str)!` (the manager's own package names; sudo on Linux when not root).
+- semver: `compare(a, b)!` → -1, 0 or 1 (`1.10` is newer than `1.9`; `1.2` equals `1.2.0`; a leading `v` is ignored; `1.0.0-rc.1` is older than `1.0.0`; fails if a text is not a version).
 - str: `len()`, `trim()`, `trim_start()`, `trim_end()`, `upper()`, `lower()`, `contains(s)`, `starts_with(s)`, `ends_with(s)`, `strip_prefix(s)`, `strip_suffix(s)`, `index_of(s)` (-1), `slice(a, b)`, `split(sep)`, `lines()`, `replace(a, b)` (all), `replace_first(a, b)`, `repeat(n)`, `pad_left(n, c)`, `pad_right(n, c)`, `to_int()!`, `chars()`.
-- lists: `len()`, `push(x)`, `pop()!`, `filter(f)`, `map(f)`, `any(f)`, `all(f)`, `find(f)!`, `contains(x)`, `index_of(x)`, `join(sep)`, `sum()`, `sort()`, `sort_by(f)`, `reverse()`, `slice(a, b)`, `unique()`, `first()!`, `last()!`. Lambdas: `x => x > 1` or `x => { … return v }`.
+- lists: `len()`, `push(x)`, `pop()!`, `filter(f)`, `map(f)`, `any(f)`, `all(f)`, `find(f)!`, `contains(x)`, `index_of(x)`, `join(sep)`, `sum()`, `sort()`, `sort_by(f)`, `reverse()`, `slice(a, b)`, `unique()`, `concat(other)`, `first()!`, `last()!`. Lambdas: `x => x > 1` or `x => { … return v }`.
 - maps: `m[k]!`, `m[k] = v`, `has(k)`, `remove(k)`, `keys()`, `values()`, `len()`.
-- Planned (the compiler refuses it with E090): pkg.
 
 ## CLI
 
-`nalu run x.nalu -- args`, `nalu build x.nalu [--target linux,macos,windows] [-o dist]`, `nalu check x.nalu [--json] [--explain]`, `nalu check --stdin x.nalu --json` (source on stdin), `nalu fmt [files|folders]` (`--check` only checks; `--stdin x.nalu` for editors), `nalu doc [name…]` (docs for `fs`, `fs.copy`, `str`, `str.split`, `catch`…; no name: the overview), `nalu emit x.nalu --target T`, `nalu test [folder]`, `nalu ide hover|complete|signature|definition|context x.nalu --at L:C [--stdin]` (editor queries, JSON). After writing or editing Nalu code, run `nalu fmt` and `nalu check`; when unsure about a function, `nalu doc`.
+`nalu run x.nalu -- args`, `nalu build x.nalu [--target linux,macos,windows] [-o dist]`, `nalu check x.nalu [--json] [--explain] [--deny-warnings]`, `nalu check --stdin x.nalu --json` (source on stdin), `nalu fmt [files|folders]` (`--check` only checks; `--stdin x.nalu` for editors), `nalu doc [name…]` (docs for `fs`, `fs.copy`, `str`, `str.split`, `catch`…; no name: the overview), `nalu emit x.nalu --target T`, `nalu test [folder]`, `nalu ide hover|complete|signature|definition|context x.nalu --at L:C [--stdin]` (editor queries, JSON). After writing or editing Nalu code, run `nalu fmt` and `nalu check`; when unsure about a function, `nalu doc`.
 
 ## Complete example
 

@@ -266,13 +266,13 @@ ana has 2 tasks
 
 | Form | Interpolation | Escapes | Lines |
 |---|---|---|---|
-| `"…"` | `{expr}` | `\n \t \r \" \\ \{ \}` | one |
+| `"…"` | `{expr}` | `\n \t \r \" \\ \{ \} \u{…}` | one |
 | `'…'` | no | no | one; can't contain `'` |
 | `"""…"""` | `{expr}` | as in `"…"` | several |
 
 - **Interpolation.** `{expr}` takes any expression that becomes text: `str`, `path`, `int`, `bool`, `duration`, an enum or `err`, including calls and nested strings (`{tasks.join(", ")}`). Lists, maps and structs don't become text (`E022`, with a suggestion such as `list.join(", ")`), and neither do secrets (`E050`).
 - **Literal braces.** `{{` and `}}` are literal braces, and so are `\{` and `\}`. An empty `{}` is also literal, which is what `fmt` templates use.
-- **Escapes.** Only the ones in the table; any other is `E005`. `\0` is rejected because Bash can't store the NUL character.
+- **Escapes.** Only the ones in the table; any other is `E005`. `\u{…}` is a character by its code point, with 1 to 6 hex digits: `"\u{1b}[32mok\u{1b}[0m"` for a terminal color, `"\u{e9}"` for `é`. `\0` and `\u{0}` are rejected because Bash can't store the NUL character.
 - **Raw strings.** Single quotes are for regular expressions, Windows paths, JSON and other shells' code: what you write is what you get.
 - **Multi-line strings.** `"""` removes the line break after the opening quotes, the line that holds the closing quotes, and the indentation common to every line. The result doesn't end with a line break.
 - **`fmt(template, items…)`** replaces each `{}` with the next item. It has no format specifiers; for alignment use `pad_left` and `pad_right`. When the template is fixed text, the compiler checks the number of items (`E012`).
@@ -525,8 +525,8 @@ print([3, 1, 2].sort().join(","), [1, 1, 2].unique().len(), [1, 2, 3].sum())
 
 - `xs[i]` and `xs[i] = v` fail when `i` is out of range: `index 9 is out of range (the list has 2 items)`. There are no negative indexes: use `xs.last()`.
 - `push` and `pop` change the list, so they need a `var`. `pop`, `first`, `last` and `find` fail when there is nothing to return.
-- `filter`, `map`, `sort`, `sort_by`, `reverse`, `slice` and `unique` return a new list. `join` and `sort` need a list of scalars; `sum` adds a `[]int` or a `[]duration`.
-- Lists can't be added with `+` (`E010`): `push` the items instead.
+- `filter`, `map`, `sort`, `sort_by`, `reverse`, `slice`, `unique` and `concat` return a new list. `join` and `sort` need a list of scalars; `sum` adds a `[]int` or a `[]duration`.
+- `xs.concat(ys)` gives the items of `xs` followed by the items of `ys`, for any kind of item. Lists can't be added with `+` (`E010`).
 - In a command, a list on its own (`$ rm -- {files}`) becomes one argument per item.
 
 ### Lists of lists
@@ -762,7 +762,7 @@ Division and remainder fail too when the divisor can be zero (`a / b`, `a % b` w
 
 | Form | What it does |
 |---|---|
-| `x catch value` | uses `value` instead, of the same type: `fs.read(p) catch ""` |
+| `x catch value` | uses `value` instead, of the same type: `fs.read(p) catch ""`. The value can use `err`: `catch err.code`, `catch "failed: {err}"` |
 | `x catch fail "…"` | fails with a better message, where `{err}` is available: `catch fail "offline: {err}"` |
 | `x catch ignore` | carries on; only for things that return no value (commands, calls without a return type) |
 | `x catch { … }` | runs the block with `err`; used as a value, the block's last line is the value |
@@ -793,7 +793,7 @@ print(user, port)
 - `catch` only follows something that can fail (`E040`). For a logical "or" between conditions, use `||`; the compiler suggests it when it sees `catch` between two `bool` values.
 - `catch` has the lowest precedence of all: `fs.read(p) == "a" catch false` means `(fs.read(p) == "a") catch false`.
 - A `catch` block may end with `return`, `fail`, `exit(…)`, `break` or `continue` instead of a value. These need the block: write `catch { return }`, not `catch return` (`E005`).
-- `err` exists only inside `catch { … }` and in the message of `catch fail "…"` (`E046` anywhere else, including after `catch value`).
+- `err` exists only after `catch`: in its value (`catch err.code`), inside `catch { … }` and in the message of `catch fail "…"`. Anywhere else it is `E046`.
 - `catch ignore` on a command that changes files (`rm`, `mv`, `rmdir`, `del`, `Remove-Item`) is a warning (`W012`): handle the failure or let it propagate.
 
 ### Blocks: `try { } catch …`
@@ -908,6 +908,25 @@ A line that starts with `$ ` is a command: the program and its arguments, up to 
 - **Where a command ends.** At the end of the line; at an unquoted ` catch `, which starts the handler; at a `//` comment; and at a `{` that ends the line, which opens a block. To pass the word `catch` as an argument, quote it: `"catch"`. A `}` on the same line is just an argument, so a command inside a block goes on its own line.
 - **No shell operators.** `||` inside a command is an error (`E005`): to run another program when one fails, put it in a `catch { … }` block. `&&` is just an argument: put the next command on its own line, where it runs only if the first one succeeded.
 
+### `NAME=value` sets a variable for one program
+
+```nalu
+param token: secret
+
+let level = "debug"
+$ CGO_ENABLED=0 GOOS=linux go build -o dist/app .
+$ LOG_LEVEL={level} NODE_ENV=production node server.js
+$ GH_TOKEN={token} gh release create v1.4.0
+let files = $(LC_ALL=C ls dist)
+print(files)
+```
+
+- Words of the form `NAME=value` written **before** the program set environment variables for that program only. The script's own environment doesn't change, and the next command doesn't see them; for the rest of the script, use `env.set`.
+- The value follows the rules of any word: literal text, `{expr}`, quotes. It is always one value, so a list there is `E042`.
+- In a pipeline, each program has its own: `$ A=1 first | B=2 second`.
+- **This is the place for a secret a program reads from its environment.** A program's environment, unlike its arguments, isn't in the process list, so `TOKEN={token}` gives no `W011`; `--verbose` and `--dry-run` show it as `******`.
+- A `NAME=value` with no program after it (`$ MODE=fast`) is `E005`. After the program, `a=b` is an ordinary argument, as in `$ kubectl set image deployment/api api={image}`.
+
 ### `$( )` captures output
 
 ```nalu
@@ -960,7 +979,16 @@ error: this script needs: docker, kubectl
 
 The exit code is 127. Programs named by a path (`./build.sh`) or by a value (`$ {tool}`) aren't checked, nor are shell built-ins (`cd`, `echo`, `test`, `[`, `true`, `false`, `printf`, `read`, `exit`, `export`, `set`, `unset`). Programs in a branch for another system (see [`os`](#code-for-each-system-os-and-native)) aren't required, and `--dry-run` skips the check.
 
-A program you only use when it is there is optional: inside `if proc.exists("x") { … }` (or the `else` of `if !proc.exists("x")`), `x` isn't required and gets no `W010`:
+A program the script asks about with `proc.exists("x")`, anywhere, isn't required before it starts: the script decides what to do when it is missing, such as installing it first.
+
+```nalu
+if !proc.exists("jq") {
+    pkg.install(["jq"])
+}
+$ jq --version
+```
+
+A program you only use when it is there is optional too, and inside `if proc.exists("x") { … }` (or the `else` of `if !proc.exists("x")`) it also gets no `W010`:
 
 ```nalu
 if proc.exists("brew") {
@@ -1317,7 +1345,7 @@ ok      division by zero fails
 |---|---|
 | `nalu run x.nalu [-- args…]` | compiles for this system and runs the script with the arguments |
 | `nalu build x.nalu [--target a,b] [-o dir]` | writes `x.linux.sh` and `x.macos.sh` (executable), `x.windows.ps1` (ASCII with CRLF, so `irm … | iex` works) and a `x.windows.cmd` launcher; the default is every target, into `dist` |
-| `nalu check x.nalu [--json] [--explain]` | checks only: errors and warnings for all three targets; `--explain` also lists every place that can fail ([details](#seeing-what-can-fail-nalu-check---explain)) |
+| `nalu check x.nalu [--json] [--explain] [--deny-warnings]` | checks only: errors and warnings for all three targets; `--explain` also lists every place that can fail ([details](#seeing-what-can-fail-nalu-check---explain)) |
 | `nalu check --stdin x.nalu […]` | the same, reading the source from standard input (for editors with unsaved files) |
 | `nalu fmt <file\|folder>… [--check]` | formats `.nalu` files in place; folders are searched recursively, skipping `target`, `dist` and hidden folders; `--check` changes nothing and lists the files that would change |
 | `nalu fmt --stdin x.nalu` | formats standard input to standard output |
@@ -1332,7 +1360,7 @@ ok      division by zero fails
 - `nalu run` needs `bash` (`/bin/bash` or on `PATH`) or, on Windows, `pwsh` or `powershell`; the environment variable `NALU_PWSH` picks a specific PowerShell.
 - `nalu fmt` doesn't write files with syntax errors: it prints the diagnostics and exits with 1.
 - `nalu doc` with an unknown name suggests the closest one and exits with 1.
-- `nalu check` prints `ok: x.nalu` when there is nothing to report.
+- `nalu check` prints `ok: x.nalu` when there is nothing to report. With `--deny-warnings`, a warning makes it exit with 1 like an error, which is what a CI step wants.
 
 `nalu check --json` prints a list of `{file, line, column, severity, code, message, help}`, where `help` may be `null`:
 
@@ -1394,7 +1422,7 @@ The parser recovers from errors, so one run reports several. Warnings don't stop
 | `E054` | a `regex` pattern that isn't fixed text, isn't valid, or (for `find`, `find_all`, `groups`, `replace`) can match the same text in more than one way |
 | `E060` | `assert` or `assert_fails` outside a `test`; `assert_fails` on something that can't fail |
 | `E055` | `use` of a file that doesn't exist, or a used file with something other than `fn`, `struct`, `enum` and `test` |
-| `E090` | a planned feature: lists of maps, maps of maps, three levels of lists, a list field whose items have map fields, `parallel for` with an index or returning collections, a struct pattern inside a struct pattern, the `pkg` module |
+| `E090` | a planned feature: lists of maps, maps of maps, three levels of lists, a list field whose items have map fields, `parallel for` with an index or returning collections, a struct pattern inside a struct pattern |
 | `E999` | an internal compiler error; please report it with the file that caused it |
 | `W001` | a variable that is never read |
 | `W002` | a `param` that is never used |
@@ -1419,6 +1447,7 @@ When you write something from another language, or from Nalu before v1, the comp
 | `const`, `func`, `function`, `def` | `E006` | `let`, `fn` |
 | `switch`, `case` | `E006` | `match`, `pattern =>` |
 | `for x of xs`, `for i = 0; i < n; i++` | `E006` | `for x in xs`, `for i in 0..n` |
+| `if x in xs`, `loop {` | `E006` | `if xs.contains(x)` (or `m.has(k)`), `while true {` |
 | `x++`, `a ? b : c`, `;`, `import`, `print "x"` | `E006` | `x += 1`, `if a { b } else { c }`, a new line, nothing, `print("x")` |
 | `m.get(k)`, `m.set(k, v)` | `E001` | `m[k]` (can fail), `m[k] = v` |
 | `s.is_empty()`, `xs.is_empty()` | `E001` | `s == ""`, `xs.len() == 0` |
@@ -1463,7 +1492,6 @@ error[E001]: `path` has no `.exists`
 - No floating-point numbers.
 - Collections nest one level: lists of lists of scalars and maps with list values. Lists of maps, maps of maps and deeper nesting are planned (`E090`).
 - A mutating method on a nested value (`groups[k].push(x)`, `rows[0].pop()`) works as a statement or as the whole value of `let`, `=` or `return`; inside a larger expression (`print(rows[0].pop())`) it is `E002`.
-- The `pkg` module is planned (`E090`). Until then, use a command with `$` or a `native` block.
 - On Windows, `parallel` tasks that call `sys.cd` or `env.set` run one at a time, and starting the runspaces costs a few hundred milliseconds per `parallel`.
 - Integers are 64-bit and overflow isn't checked, so results past the limits differ between targets. `to_int()` rejects numbers out of range.
 - `json` is parsed by the script itself, with no `jq` or Python, which suits API responses and configuration files rather than large documents.
@@ -1494,7 +1522,7 @@ These aren't keywords, but they can't name your variables, parameters, functions
 | constants | `os`, `dry_run`, `args`, `err`, `self` |
 | built-ins | `print`, `fmt`, `exit`, `fail`, `retry`, `secret`, `embed`, `assert`, `assert_fails` |
 | logic words from other languages | `or`, `and`, `not` |
-| modules | `archive`, `dirs`, `encoding`, `env`, `fs`, `hash`, `http`, `json`, `log`, `math`, `path`, `pkg`, `proc`, `regex`, `sys`, `time`, `ui` |
+| modules | `archive`, `dirs`, `encoding`, `env`, `fs`, `hash`, `http`, `json`, `log`, `math`, `path`, `pkg`, `proc`, `regex`, `semver`, `sys`, `time`, `ui` |
 | `param` names only | `verbose`, `help` |
 
 ### Grammar

@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.2.0 — 2026-11-10
+
+Everything that compiled with 1.1 compiles with 1.2 and does the same thing. Two messages changed, both listed under *Changed*.
+
+### The language
+
+- **`NAME=value` before a program** sets environment variables for that program only: `$ CGO_ENABLED=0 GOOS=linux go build`, `$ LOG_LEVEL={level} node server.js`, also inside `$( )`, in conditions and in each stage of a pipeline. Before, such a line compiled and then failed at run time looking for a program called `CGO_ENABLED=0`. A secret may go there (`$ GH_TOKEN={token} gh …`): a program's environment is not in the process list, so there is no `W011`, and `--verbose` shows `******`. A `NAME=value` with no program after it is `E005`.
+- **`err` in the value after `catch`**: `let code = build() catch err.code`, `let text = fs.read(p) catch "unreadable: {err}"`. It is the same error a `catch { … }` block sees.
+- **`\u{…}`** in strings: a character by its code point (`"\u{1b}[32mok\u{1b}[0m"`, `"\u{e9}"`).
+- **A program the script asks about with `proc.exists("x")` is not required before the script starts**, wherever it is used, so a script can install what is missing and then use it.
+- Two more forms from other languages get a hint (`E006`): `if x in xs` (use `xs.contains(x)` or `m.has(k)`) and `loop {` (use `while true {`).
+
+### The standard library
+
+- **`pkg`**, the last planned module: `pkg.manager()` names the system's package manager (`apt-get`, `dnf`, `yum`, `pacman`, `zypper`, `apk`; `brew`; `winget`, `choco`, `scoop`; or `""`), and `pkg.install(names)` installs with it, answering yes to its questions and using `sudo` on Linux when the script is not root. Nothing is refused with `E090` as "planned" anymore.
+- **`semver.compare(a, b)`**: -1, 0 or 1. Numbers compare as numbers (`1.10` is newer than `1.9`), missing parts are 0, a leading `v` and `+build` are ignored, and a pre-release is older than its release. Fails on a text that is not a version.
+- **`http.request(method, url, body, …)`** for `PUT`, `PATCH` and `DELETE` (and `POST`), with the same headers, token, timeout and `--dry-run` behavior as `http.post`.
+- **`archive.zip_create(file, dir)`**. On Windows the entries are written one by one with `/` in their names: `Compress-Archive` and .NET's `CreateFromDirectory` write `\` under Windows PowerShell 5.1, and such a file extracts wrongly on Linux and macOS.
+- **`xs.concat(ys)`** joins two lists of any kind of item (scalars, structs, lists).
+- **`env.unset(name)`**.
+
+### The tools
+
+- `nalu check --deny-warnings` exits with 1 when there is a warning, for CI.
+
+### Changed
+
+- **PowerShell: a failed command names the whole command**, as the Bash scripts and the documentation always did: ``command `git push origin main` failed with exit code 1``. It used to name only the program (``command `git` failed…``).
+- Bash: a missing program whose name comes from a value, in a pipeline or with redirection, is named alone (``command `tool` was not found``), as on Windows.
+- PowerShell: `--verbose` and `--dry-run` now show a command that has `{` inside single quotes, or a redirection to a fixed file, exactly as it was written, like the Bash scripts.
+
+### Not there yet
+
+- Floats; lists of maps, maps of maps and deeper nesting; `.map()` that returns structs; a folder for one command or block (use `sys.cd`).
+
 ## 1.1.1 — 2026-11-10
 
 ### Fixed

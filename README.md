@@ -167,13 +167,14 @@ No imports: every module is always there, with the same behavior on the three ta
 |---|---|
 | `fs` · `path` · `dirs` | files and folders, paths with the right separator, home and app folders |
 | `env` · `sys` · `proc` | environment variables, architecture, admin and CI checks, `which` |
-| `http` | `get`, `post`, `status` and `download`, with headers and a `bearer: secret` that never shows up in argv |
+| `http` | `get`, `post`, `request` (PUT, PATCH, DELETE), `status` and `download`, with headers and a `bearer: secret` that never shows up in argv |
 | `json` | `get`, `get_list`, `keys`, `has` and `quote`, parsed by the script itself (no `jq`) |
 | `regex` · `encoding` | one regex syntax, checked by the compiler and identical on every target; Base64 |
 | `hash` · `archive` | SHA-256 of text and files; `.tar.gz` and `.zip` |
+| `pkg` · `semver` | install with the system's package manager (`apt-get`, `brew`, `winget`…); compare versions |
 | `time` · `log` · `ui` | timestamps and durations, leveled logs, prompts that fall back without a terminal |
 
-Full list: [docs/stdlib.md](docs/stdlib.md), generated from the compiler (`nalu doc --all`). Still planned: `pkg`.
+Full list: [docs/stdlib.md](docs/stdlib.md), generated from the compiler (`nalu doc --all`).
 
 ## Tooling
 
@@ -184,7 +185,7 @@ Full list: [docs/stdlib.md](docs/stdlib.md), generated from the compiler (`nalu 
 
 ## Status
 
-Nalu 1.1. The compiler, both backends, the standard library above, the formatter and the editor tooling are done, and the test suite runs every case on Bash 3.2, Bash 5 and PowerShell 7. Compiler messages and everything the generated scripts print are in English and identical on the three targets. 1.1 added `regex` and `encoding`, `match` with guards and struct patterns, lists of lists, maps of lists, structs and lists of structs inside structs, scripts split across files with `use`, and `parallel` that really runs in parallel on Windows. Not there yet: floats, lists of maps and the `pkg` module; the [changelog](CHANGELOG.md) has the details.
+Nalu 1.2. The compiler, both backends, the standard library above, the formatter and the editor tooling are done, and the test suite runs every case on Bash 3.2, Bash 5 and PowerShell 7. Compiler messages and everything the generated scripts print are in English and identical on the three targets. 1.1 added `regex` and `encoding`, `match` with guards and struct patterns, lists of lists, maps of lists, structs and lists of structs inside structs, scripts split across files with `use`, and `parallel` that really runs in parallel on Windows. 1.2 added `NAME=value` before a command, the `pkg` and `semver` modules, `http.request`, `archive.zip_create`, `list.concat` and `err` in the value after `catch`. Not there yet: floats and lists of maps; the [changelog](CHANGELOG.md) has the details.
 
 ## Learn more
 
