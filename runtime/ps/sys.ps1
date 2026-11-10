@@ -198,9 +198,13 @@ function __UiChoose([string]$q, $opts) {
 # Invoke-WebRequest with TLS 1.2 (5.1 ships without it), no progress bar (it makes 5.1 slow).
 # Headers "Name: value"; the token becomes Authorization: Bearer in memory only. In 5.1, User-Agent and
 # Content-Type cannot go in -Headers: they go in their own parameters.
-function __Http([string]$url, $timeoutMs, [string]$mode, [string]$to, $headers, [string]$bearer, [string]$body, [string]$ct) {
+function __Http([string]$url, $timeoutMs, [string]$mode, [string]$to, $headers, [string]$bearer, [string]$body, [string]$ct, [string]$method = '') {
     $ProgressPreference = 'SilentlyContinue'
     try { [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12 } catch { }
+    if ($mode -eq 'request') {
+        if (@('POST', 'PUT', 'PATCH', 'DELETE') -cnotcontains $method) { __Throw ("http.request: '" + $method + "' is not a method it sends (POST, PUT, PATCH or DELETE)") 1 }
+        if ($script:__dry) { [Console]::Error.WriteLine('[dry-run] http.request ' + $method + ' ' + $url); return '' }
+    }
     if ($mode -eq 'post' -and $script:__dry) { [Console]::Error.WriteLine('[dry-run] http.post ' + $url); return '' }
     $sec = [int][Math]::Max(1, [Math]::Ceiling([double][long]$timeoutMs / 1000))
     $h = @{}
@@ -225,6 +229,14 @@ function __Http([string]$url, $timeoutMs, [string]$mode, [string]$to, $headers, 
         $p['Method'] = 'Post'
         $p['ContentType'] = $ct
         $p['Body'] = (New-Object System.Text.UTF8Encoding $false).GetBytes($body)
+    }
+    if ($mode -eq 'request') {
+        $p['Method'] = $method
+        # an empty body sends none
+        if ($body.Length -gt 0) {
+            $p['ContentType'] = $ct
+            $p['Body'] = (New-Object System.Text.UTF8Encoding $false).GetBytes($body)
+        }
     }
     $status = 0
     $resp = $null

@@ -241,10 +241,11 @@ __http_curl() {
   __secs "$3"
   __h_t=$__ret
   shift 6
-  if [[ $__h_m == post ]]; then set -- "$@" "Content-Type: $__h_ct"; fi
+  # request: the method comes in __http_x (set by __http_request); an empty body sends no body
+  if [[ $__h_m == post || ( $__h_m == request && -n $__h_body ) ]]; then set -- "$@" "Content-Type: $__h_ct"; fi
   if ! type -P curl >/dev/null 2>&1; then
     # no curl: wget covers GET without headers or token
-    if [[ $__h_m == post || -n $__h_b || $# -gt 0 ]]; then __err "http.$__h_m: needs curl (POST, headers and tokens)"; return; fi
+    if [[ $__h_m == post || $__h_m == request || -n $__h_b || $# -gt 0 ]]; then __err "http.$__h_m: needs curl (POST, headers and tokens)"; return; fi
     case $__h_m in
       get)
         __h_o=$(wget -q -O - -T "${__h_t%.*}" -- "$__h_u" 2>/dev/null && printf '.') || { __err "http.get: could not reach $__h_u"; return; }
@@ -268,6 +269,12 @@ __http_curl() {
       __h_o=$(curl -sSL --max-time "$__h_t" -w '%{http_code}' -K <(printf '%s' "$__h_cfg") -- "$__h_u" 2>/dev/null) || { __err "http.get: could not reach $__h_u"; return; } ;;
     post)
       __h_o=$(printf '%s' "$__h_body" | curl -sSL --max-time "$__h_t" -w '%{http_code}' -K <(printf '%s' "$__h_cfg") --data-binary @- -- "$__h_u" 2>/dev/null) || { __err "http.post: could not reach $__h_u"; return; } ;;
+    request)
+      if [[ -n $__h_body ]]; then
+        __h_o=$(printf '%s' "$__h_body" | curl -sSL -X "$__http_x" --max-time "$__h_t" -w '%{http_code}' -K <(printf '%s' "$__h_cfg") --data-binary @- -- "$__h_u" 2>/dev/null) || { __err "http.request: could not reach $__h_u"; return; }
+      else
+        __h_o=$(curl -sSL -X "$__http_x" --max-time "$__h_t" -w '%{http_code}' -K <(printf '%s' "$__h_cfg") -- "$__h_u" 2>/dev/null) || { __err "http.request: could not reach $__h_u"; return; }
+      fi ;;
     status)
       __h_o=$(curl -sSL -o /dev/null --max-time "$__h_t" -w '%{http_code}' -K <(printf '%s' "$__h_cfg") -- "$__h_u" 2>/dev/null)
       if [[ ! $__h_o =~ ^[0-9]+$ ]] || (( 10#$__h_o == 0 )); then __err "http.status: could not reach $__h_u"; return; fi
@@ -315,6 +322,21 @@ __http_post() {
   shift 5
   if [[ $__dry == true ]]; then printf '[dry-run] http.post %s\n' "$__h_u" >&2; __ret=''; return 0; fi
   __http_curl post "$__h_u" "$__h_t" "$__h_b" "$__h_body" "$__h_ct" "$@"
+}
+
+# @fn __http_request
+# @needs __http_curl __err
+# @target all
+__http_request() {
+  # __http_request method url body content-type ms bearer headers…; in --dry-run only shows (nothing leaves the machine)
+  local __http_x=$1 __h_u=$2 __h_body=$3 __h_ct=$4 __h_t=$5 __h_b=$6
+  shift 6
+  case $__http_x in
+    POST | PUT | PATCH | DELETE) ;;
+    *) __err "http.request: '$__http_x' is not a method it sends (POST, PUT, PATCH or DELETE)"; return ;;
+  esac
+  if [[ $__dry == true ]]; then printf '[dry-run] http.request %s %s\n' "$__http_x" "$__h_u" >&2; __ret=''; return 0; fi
+  __http_curl request "$__h_u" "$__h_t" "$__h_b" "$__h_body" "$__h_ct" "$@"
 }
 
 # @fn __http_download

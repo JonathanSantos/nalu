@@ -82,6 +82,7 @@ HTTP requests, with headers and a `bearer` token that never shows up in a comman
 - `http.status(url: str, timeout: duration = 30s, headers: []str = [], bearer: secret = "") -> int` (can fail): Sends a GET and returns only the HTTP status code.
 - `http.download(url: str, to: path, headers: []str = [], bearer: secret = "")` (can fail, writes): Downloads the URL into a file; fails on status >= 400 without leaving a partial file.
 - `http.post(url: str, body: str, content_type: str = "application/json", timeout: duration = 30s, headers: []str = [], bearer: secret = "") -> str` (can fail, writes): Sends a POST and returns the response body; fails on status >= 400. With --dry-run it is only shown (and returns "").
+- `http.request(method: str, url: str, body: str = "", content_type: str = "application/json", timeout: duration = 30s, headers: []str = [], bearer: secret = "") -> str` (can fail, writes): Sends a request with the method `POST`, `PUT`, `PATCH` or `DELETE` and returns the response body; fails on status >= 400 and on any other method. An empty `body` sends none. With --dry-run it is only shown.
 
 ## Module json
 

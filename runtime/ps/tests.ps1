@@ -163,6 +163,8 @@ Check 'semver zeros' (__SemverCompare 'v1.2' '1.2.0') 0L
 Check 'semver pre' (__SemverCompare '2.0.0' '2.0.0-rc.1') 1L
 Check 'semver pre parts' (__SemverCompare '1.0.0-beta.2' '1.0.0-beta.11') (-1L)
 Check 'semver invalid' (Fails { __SemverCompare 'latest' '1.0' }) $true
+Check 'http.request method' (Fails { __Http 'http://127.0.0.1:9/' 2000L 'request' '' $null '' '' 't' 'GET' }) $true
+Check 'http.request closed port' (Fails { __Http 'http://127.0.0.1:9/' 2000L 'request' '' $null '' 'x' 't' 'PUT' }) $true
 $lc = __ListConcat (L 1 2) (L 3)
 Check 'concat' ($lc -join ',') '1,2,3'
 Check 'concat empty' ((__ListConcat (L) (L)).Count) 0

@@ -608,6 +608,18 @@ impl<'a> Gen<'a> {
                 let arr = self.list_arr(&h);
                 self.helper("__http_post", &[u, body, ct, tw, bearer, format!("\"${{{}[@]}}\"", arr)], true, ret_w())
             }
+            "http.request" => {
+                let m = self.aw(c, 0);
+                let u = self.aw(c, 1);
+                let body = self.aw(c, 2);
+                let ct = self.aw(c, 3);
+                let t = self.arg(c, 4).clone();
+                let tw = self.arith_word(&t);
+                let bearer = self.aw(c, 6);
+                let h = self.arg(c, 5).clone();
+                let arr = self.list_arr(&h);
+                self.helper("__http_request", &[m, u, body, ct, tw, bearer, format!("\"${{{}[@]}}\"", arr)], true, ret_w())
+            }
             "http.download" => {
                 let u = self.aw(c, 0);
                 let to = self.aw(c, 1);

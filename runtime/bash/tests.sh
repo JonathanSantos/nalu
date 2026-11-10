@@ -371,6 +371,9 @@ ok __http_download 'no half-written file' test ! -e "$tmp/dl.nalu-partial"
 no __http_curl 'closed port' __http_curl get 'http://127.0.0.1:9/' 2000 '' '' ''
 no __http_post 'closed port' __http_post 'http://127.0.0.1:9/' 'x' 'text/plain' 2000 ''
 eq __http_post 'dry-run does not send' "$(__dry=true; __http_post 'http://127.0.0.1:9/' x t 2000 '' 2>&1; echo "s=$?")" $'[dry-run] http.post http://127.0.0.1:9/\ns=0'
+no __http_request 'closed port' __http_request PUT 'http://127.0.0.1:9/' 'x' 'text/plain' 2000 ''
+no __http_request 'unknown method' __http_request GET 'http://127.0.0.1:9/' '' 't' 2000 ''; eq __http_request 'message' "$__err_msg" "http.request: 'GET' is not a method it sends (POST, PUT, PATCH or DELETE)"
+eq __http_request 'dry-run does not send' "$(__dry=true; __http_request DELETE 'http://127.0.0.1:9/' '' t 2000 '' 2>&1; echo "s=$?")" $'[dry-run] http.request DELETE http://127.0.0.1:9/\ns=0'
 ret __curl_cfg 'headers and token' $'header = "X: 1"\nheader = "Authorization: Bearer a\\"b\\\\c"\n' __curl_cfg 'a"b\c' 'X: 1'
 ret __curl_cfg 'empty' '' __curl_cfg ''
 no __unimplemented 'fails with 70' __unimplemented regex.test; eq __unimplemented 'code' "$__err_code" 70

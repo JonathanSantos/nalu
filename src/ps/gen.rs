@@ -1072,6 +1072,7 @@ impl<'a> Gen<'a> {
             ("http", "get") => V(format!("(__Http {} {} 'get' '' {} {} '' '')", a0, a1, a2, a3)),
             ("http", "status") => V(format!("(__Http {} {} 'status' '' {} {} '' '')", a0, a1, a2, a3)),
             ("http", "download") => S(format!("if (-not (__DryW ('http.download ' + {a} + ' ' + {b}) {b})) {{ __Http {a} 300000L 'download' {b} {h} {t} '' '' }}", a = a0, b = a1, h = a2, t = a3)),
+            ("http", "request") => V(format!("(__Http {} {} 'request' '' {} {} {} {} {})", a1, a4, a5, g(6), a2, a3, a0)),
             ("http", "post") => V(format!("(__Http {} {} 'post' '' {} {} {} {})", a0, a3, a4, a5, a1, a2)),
             ("fs", "chmod") => S(format!("__FsChmod {} {}", a0, a1)),
             ("hash", "sha256") => V(format!("(__HashSha256 {})", a0)),
